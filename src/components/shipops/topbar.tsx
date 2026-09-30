@@ -11,6 +11,9 @@ interface TopbarProps {
   currentView: ViewKey;
   onMenuClick: () => void;
   onRoleChange: (role: UserRole) => void;
+  userName?: string;
+  orgName?: string;
+  onLogout?: () => void;
 }
 
 const viewTitles: Record<ViewKey, { title: string; subtitle: string }> = {
@@ -31,7 +34,7 @@ const viewTitles: Record<ViewKey, { title: string; subtitle: string }> = {
   team: { title: "Team Members", subtitle: "Roles, permissions & invitations" },
 };
 
-export function Topbar({ userRole, currentView, onMenuClick, onRoleChange }: TopbarProps) {
+export function Topbar({ userRole, currentView, onMenuClick, onRoleChange, userName, orgName, onLogout }: TopbarProps) {
   const [roleOpen, setRoleOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const meta = viewTitles[currentView];
@@ -66,7 +69,7 @@ export function Topbar({ userRole, currentView, onMenuClick, onRoleChange }: Top
           {/* Store selector */}
           <div className="hidden items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-sm sm:flex">
             <Store className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">Demo Store PK</span>
+            <span className="font-medium">{orgName || "Demo Store PK"}</span>
             <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </div>
 
@@ -121,10 +124,10 @@ export function Topbar({ userRole, currentView, onMenuClick, onRoleChange }: Top
               className="flex items-center gap-2 rounded-md border border-border bg-muted/40 py-1.5 pl-1.5 pr-2 hover:bg-muted"
             >
               <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-teal-600 to-emerald-700 text-xs font-bold text-white">
-                HS
+                {(userName || "HS").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
               </div>
               <div className="hidden text-left leading-none sm:block">
-                <p className="text-xs font-semibold">Hamza Sheikh</p>
+                <p className="text-xs font-semibold">{userName || "Hamza Sheikh"}</p>
                 <p className="text-[10px] text-muted-foreground">{userRoleConfig[userRole].label}</p>
               </div>
               <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -134,8 +137,8 @@ export function Topbar({ userRole, currentView, onMenuClick, onRoleChange }: Top
                 <div className="fixed inset-0 z-40" onClick={() => setRoleOpen(false)} />
                 <div className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
                   <div className="border-b border-border px-4 py-3">
-                    <p className="text-sm font-semibold">Hamza Sheikh</p>
-                    <p className="text-xs text-muted-foreground">hamza@demostore.pk</p>
+                    <p className="text-sm font-semibold">{userName || "Hamza Sheikh"}</p>
+                    <p className="text-xs text-muted-foreground">{orgName || "Demo Store PK"}</p>
                   </div>
                   <div className="border-b border-border px-4 py-2">
                     <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -160,7 +163,7 @@ export function Topbar({ userRole, currentView, onMenuClick, onRoleChange }: Top
                       ))}
                     </div>
                   </div>
-                  <button className="w-full py-2 text-center text-xs font-medium text-red-600 hover:bg-red-50">
+                  <button onClick={onLogout} className="w-full py-2 text-center text-xs font-medium text-red-600 hover:bg-red-50">
                     Sign out
                   </button>
                 </div>

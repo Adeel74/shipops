@@ -5,13 +5,14 @@ import { dashboardMetrics, deliveryTrend, courierPerformance, cityDistribution, 
 import { formatPKR, formatPKRFull } from "@/lib/format";
 import { PageContainer, SectionCard, StatusBadge, CourierTag } from "../shared";
 import { cn } from "@/lib/utils";
-import type { ViewKey } from "@/lib/types";
+import type { ViewKey, Order } from "@/lib/types";
 
 interface DashboardViewProps {
   onNavigate: (v: ViewKey) => void;
+  onOpenOrder?: (order: Order) => void;
 }
 
-export function DashboardView({ onNavigate }: DashboardViewProps) {
+export function DashboardView({ onNavigate, onOpenOrder }: DashboardViewProps) {
   const m = dashboardMetrics;
   const maxDispatched = Math.max(...deliveryTrend.map((d) => d.dispatched));
 
@@ -269,7 +270,11 @@ export function DashboardView({ onNavigate }: DashboardViewProps) {
             </thead>
             <tbody>
               {orders.slice(0, 8).map((o) => (
-                <tr key={o.id} className="border-t border-border/60 hover:bg-muted/20">
+                <tr
+                  key={o.id}
+                  onClick={() => onOpenOrder?.(o)}
+                  className="cursor-pointer border-t border-border/60 hover:bg-muted/20"
+                >
                   <td className="px-4 py-2.5 font-semibold">{o.orderNumber}</td>
                   <td className="px-4 py-2.5">{o.customerName}</td>
                   <td className="hidden px-4 py-2.5 md:table-cell">{o.city}</td>

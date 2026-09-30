@@ -1,8 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// ShipOps — Multi-tenant SaaS schema (SQLite-adapted)
+// Based on the ShipOps product blueprint. SQLite doesn't support enums or
+// Decimal, so we use String for enum-like fields and Float for money.
 
 generator client {
   provider = "prisma-client-js"
@@ -13,20 +11,538 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================================
+// AUTH & ORGANIZATION
+// ============================================================
+
 model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  memberships  OrganizationMember[]
+  sessions     Session[]
+  auditLogs    AuditLog[]
+}
+
+model Organization {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
+  name      String
+  slug      String   @unique
+  country   String?
+  timezone  String   @default("Asia/Karachi")
+  currency  String   @default("PKR")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members     OrganizationMember[]
+  stores      Store[]
+  customers   Customer[]
+  products    Product[]
+  orders      Order[]
+  couriers    CourierAccount[]
+  cases       AttentionCase[]
+  automations AutomationRule[]
+  invitations OrganizationInvitation[]
+  auditLogs   AuditLog[]
+}
+
+model OrganizationMember {
+  id             String @id @default(cuid())
+  organizationId String
+  userId         String
+  role           String @default("OPERATOR") // OWNER | ADMIN | MANAGER | OPERATOR | VIEWER
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([organizationId, userId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model OrganizationInvitation {
+  id             String   @id @default(cuid())
+  organizationId String
+  email          String
+  role           String   @default("OPERATOR")
+  tokenHash      String   @unique
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+}
+
+// ============================================================
+// STORES (Shopify connections)
+// ============================================================
+
+model Store {
+  id                   String   @id @default(cuid())
+  organizationId       String
+  platform             String   @default("SHOPIFY")
+  name                 String
+  shopDomain           String   @unique
+  shopifyStoreId       String?
+  accessTokenEncrypted String?
+  status               String   @default("ACTIVE")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orders       Order[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Post {
-  id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+// ============================================================
+// CUSTOMERS
+// ============================================================
+
+model Customer {
+  id                String   @id @default(cuid())
+  organizationId    String
+  shopifyCustomerId String?
+
+  firstName String?
+  lastName  String?
+  email     String?
+  phone     String?
+
+  totalOrders     Int @default(0)
+  deliveredOrders Int @default(0)
+  returnedOrders  Int @default(0)
+
+  riskScore Int    @default(0)
+  riskLevel String @default("LOW") // LOW | MEDIUM | HIGH
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  addresses Address[]
+  orders    Order[]
+  messages  WhatsAppMessage[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+model Address {
+  id         String @id @default(cuid())
+  customerId String
+
+  name         String?
+  phone        String?
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  state        String?
+  postalCode   String?
+  country      String?
+
+  latitude  Float?
+  longitude Float?
+
+  isDefault Boolean @default(false)
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// PRODUCTS & ORDERS
+// ============================================================
+
+model Product {
+  id               String   @id @default(cuid())
+  organizationId   String
+  shopifyProductId String?
+  title            String
+  sku              String?
+  price            Float
+  imageUrl         String?
+  status           String   @default("ACTIVE")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orderItems   OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Order {
+  id             String @id @default(cuid())
+  organizationId String
+  storeId        String
+  customerId     String
+
+  shopifyOrderId String
+  orderNumber    String
+
+  paymentMethod String?
+  isCod         Boolean @default(false)
+
+  subtotal    Float
+  shippingFee Float  @default(0)
+  discount    Float  @default(0)
+  tax         Float  @default(0)
+  totalAmount Float
+  currency    String @default("PKR")
+
+  status    String @default("UNCONFIRMED") // OrderStatus enum
+  riskScore Int    @default(0)
+  riskLevel String @default("LOW")
+
+  confirmationMethod String? // WHATSAPP | CALL | SMS | MANUAL | AUTO_CALL
+  confirmedAt        DateTime?
+
+  courier        String? // TCS | LEOPARDS | M&P | TRAX | POSTEX | CALL_COURIER | RIDER
+  trackingNumber String?
+
+  attentionType        String?  // AttentionType enum
+  attentionReason      String?
+  attentionOverdueHours Int?
+  attentionAttemptsLeft Int?
+
+  returnReason       String?
+  recommendedAction  String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  store        Store         @relation(fields: [storeId], references: [id])
+  customer     Customer      @relation(fields: [customerId], references: [id])
+
+  items         OrderItem[]
+  statusHistory OrderStatusHistory[]
+  shipment      Shipment?
+  attentionCases AttentionCase[]
+  returns       Return[]
+  messages      WhatsAppMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([storeId, shopifyOrderId])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String?
+
+  title      String
+  sku        String?
+  quantity   Int
+  unitPrice  Float
+  totalPrice Float
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id])
+}
+
+model OrderStatusHistory {
+  id      String @id @default(cuid())
+  orderId String
+
+  oldStatus String?
+  newStatus String
+
+  reason String?
+  source String?
+
+  metadata String? // JSON string
+
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}
+
+// ============================================================
+// WHATSAPP
+// ============================================================
+
+model WhatsAppAccount {
+  id                String @id @default(cuid())
+  organizationId    String
+
+  phoneNumber       String?
+  phoneNumberId     String?
+  businessAccountId String?
+
+  accessTokenEncrypted String?
+
+  status String @default("ACTIVE")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model WhatsAppMessage {
+  id             String @id @default(cuid())
+  organizationId String
+
+  customerId String
+  orderId    String?
+
+  direction String // INBOUND | OUTBOUND
+  status    String // QUEUED | SENT | DELIVERED | READ | FAILED
+
+  messageType String
+  body        String?
+  isAutomated Boolean @default(false)
+
+  externalMessageId String?
+
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  order    Order?   @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([customerId, createdAt])
+}
+
+// ============================================================
+// COURIERS & SHIPMENTS
+// ============================================================
+
+model CourierAccount {
+  id             String @id @default(cuid())
+  organizationId String
+
+  provider     String
+  accountName  String
+  accountNumber String?
+
+  apiKeyEncrypted    String?
+  apiSecretEncrypted String?
+
+  status String @default("ACTIVE")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  shipments    Shipment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Shipment {
+  id               String @id @default(cuid())
+  organizationId   String
+  orderId          String @unique
+  courierAccountId String
+
+  trackingNumber String?
+  externalId     String?
+
+  status String
+
+  shippingCost Float?
+  codAmount    Float?
+
+  labelUrl String?
+
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+  returnedAt  DateTime?
+
+  order          Order          @relation(fields: [orderId], references: [id])
+  courierAccount CourierAccount @relation(fields: [courierAccountId], references: [id])
+  trackingEvents TrackingEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TrackingEvent {
+  id         String @id @default(cuid())
+  shipmentId String
+
+  externalEventId String?
+  status          String
+  eventCode       String?
+  description     String?
+
+  location String?
+  eventTime DateTime
+  source    String  // COURIER | SHIPOPS | AI | CUSTOMER
+  isWarning Boolean @default(false)
+
+  rawPayload String? // JSON string
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([shipmentId, eventTime])
+}
+
+// ============================================================
+// NEEDS ATTENTION
+// ============================================================
+
+model AttentionCase {
+  id             String @id @default(cuid())
+  organizationId String
+
+  orderId    String?
+  customerId String?
+  shipmentId String?
+
+  type     String   // AttentionType enum
+  priority String   @default("MEDIUM") // LOW | MEDIUM | HIGH | URGENT
+  status   String   @default("OPEN")   // OPEN | IN_PROGRESS | RESOLVED | IGNORED
+
+  title       String
+  description String?
+
+  recommendedAction String?
+  aiConfidence      Int?
+
+  assignedTo String?
+
+  createdAt  DateTime @default(now())
+  resolvedAt DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  order        Order?        @relation(fields: [orderId], references: [id])
+
+  @@index([organizationId, status])
+}
+
+// ============================================================
+// RETURNS / RTO
+// ============================================================
+
+model Return {
+  id         String @id @default(cuid())
+  orderId    String
+  customerId String
+
+  reasonCode String
+  reasonText String?
+
+  status String
+
+  returnShippingCost Float?
+
+  initiatedAt DateTime?
+  receivedAt  DateTime?
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model EvidenceItem {
+  id         String @id @default(cuid())
+  orderId    String
+  type       String  // COURIER_EVENT | WHATSAPP | CALL_LOG | CUSTOMER_REPLY | AGENT_ACTION | TIMESTAMP
+  title      String
+  detail     String
+  timestamp  DateTime
+  source     String
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+// ============================================================
+// AUTOMATION
+// ============================================================
+
+model AutomationRule {
+  id             String @id @default(cuid())
+  organizationId String
+
+  name        String
+  description String?
+
+  trigger      String
+  triggerLabel String
+
+  conditions String // JSON array
+  actions    String // JSON array
+
+  enabled Boolean @default(true)
+
+  runsLast30Days Int @default(0)
+  successRate    Int @default(0)
+  lastRunAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  runs         AutomationRun[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AutomationRun {
+  id           String @id @default(cuid())
+  automationId String
+
+  status String
+
+  input  String? // JSON
+  output String? // JSON
+  error  String?
+
+  startedAt DateTime @default(now())
+  endedAt   DateTime?
+
+  automation AutomationRule @relation(fields: [automationId], references: [id], onDelete: Cascade)
+}
+
+// ============================================================
+// AUDIT LOG
+// ============================================================
+
+model AuditLog {
+  id             String @id @default(cuid())
+  organizationId String
+  userId         String?
+
+  action     String
+  entityType String
+  entityId   String?
+
+  oldData String? // JSON
+  newData String? // JSON
+
+  ipAddress String?
+  userAgent String?
+
+  createdAt DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?         @relation(fields: [userId], references: [id])
+
+  @@index([organizationId, createdAt])
 }
