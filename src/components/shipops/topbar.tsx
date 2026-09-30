@@ -50,10 +50,22 @@ const viewTitles: Record<ViewKey, { title: string; subtitle: string }> = {
   team: { title: "Team Members", subtitle: "Roles, permissions & invitations" },
 };
 
+interface MeData {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    isSuperAdmin: boolean;
+  };
+  role: string;
+}
+
 export function Topbar({ userRole, currentView, onMenuClick, onRoleChange, onNavigate, onOpenOrder, userName, orgName, onLogout }: TopbarProps) {
   const [roleOpen, setRoleOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { data: notifData, loading: notifLoading } = useApi<NotifData>("/api/v1/notifications");
+  const { data: meData } = useApi<MeData>("/api/v1/auth/me");
+  const isSuperAdmin = meData?.user?.isSuperAdmin ?? false;
   const meta = viewTitles[currentView];
 
   return (
@@ -184,10 +196,12 @@ export function Topbar({ userRole, currentView, onMenuClick, onRoleChange, onNav
                       ))}
                     </div>
                   </div>
-                  <a href="/admin" className="flex w-full items-center gap-2 border-b border-border px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
-                    <ShieldCheck className="h-4 w-4" />
-                    Super Admin Panel
-                  </a>
+                  {isSuperAdmin && (
+                    <a href="/admin" className="flex w-full items-center gap-2 border-b border-border px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
+                      <ShieldCheck className="h-4 w-4" />
+                      Super Admin Panel
+                    </a>
+                  )}
                   <button onClick={async () => { await fetch('/api/v1/auth/logout', { method: 'POST' }); onLogout?.(); }} className="w-full py-2 text-center text-xs font-medium text-red-600 hover:bg-red-50">
                     Sign out
                   </button>
