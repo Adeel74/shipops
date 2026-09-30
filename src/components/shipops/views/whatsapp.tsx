@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { MessageCircle, Send, Bot, Check, CheckCheck, Clock, Search, Phone, Video, MoreVertical, Paperclip } from "lucide-react";
-import { whatsappConversations } from "@/lib/mock-data";
 import { formatTime, formatTimeAgo } from "@/lib/format";
 import { PageContainer, EmptyState } from "../shared";
+import { LoadingScreen } from "../loading";
+import { useApi, apiPost } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { WhatsAppConversation, WhatsAppMessage } from "@/lib/types";
@@ -19,19 +20,38 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 
 export function WhatsappView() {
   const { toast } = useToast();
-  const [selected, setSelected] = useState<WhatsAppConversation | null>(whatsappConversations[0] || null);
+  const { data, loading, refetch } = useApi<{ conversations: WhatsAppConversation[]; total: number }>("/api/v1/whatsapp/conversations");
+  const conversations = data?.conversations || [];
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState("");
 
-  const filtered = whatsappConversations.filter(
+  const selected = useMemo(() => {
+    if (conversations.length === 0) return null;
+    return conversations.find((c) => c.id === selectedId) || conversations[0];
+  }, [conversations, selectedId]);
+
+  const filtered = conversations.filter(
     (c) => !search || c.customerName.toLowerCase().includes(search.toLowerCase()) || c.customerPhone.includes(search) || (c.orderNumber || "").includes(search)
   );
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!draft.trim() || !selected) return;
-    toast({ title: "Message sent", description: `To ${selected.customerName}` });
-    setDraft("");
+    const res = await apiPost("/api/v1/whatsapp/send", {
+      customerId: selected.customerId,
+      orderId: selected.messages[0]?.orderId,
+      message: draft,
+    });
+    if (res.success) {
+      toast({ title: "Message sent", description: `To ${selected.customerName}` });
+      setDraft("");
+      refetch();
+    } else {
+      toast({ title: "Failed to send", description: res.error, variant: "destructive" });
+    }
   };
+
+  if (loading) return <PageContainer><LoadingScreen message="Loading conversations..." /></PageContainer>;
 
   return (
     <PageContainer className="p-0">
@@ -54,7 +74,7 @@ export function WhatsappView() {
             {filtered.map((c) => (
               <button
                 key={c.id}
-                onClick={() => setSelected(c)}
+                onClick={() => setSelectedId(c.id)}
                 className={cn(
                   "flex w-full items-start gap-3 border-b border-border/60 p-3 text-left transition-colors hover:bg-muted/30",
                   selected?.id === c.id && "bg-muted/50"
@@ -92,7 +112,7 @@ export function WhatsappView() {
             {/* Header */}
             <div className="flex items-center justify-between border-b border-border bg-card p-3">
               <div className="flex items-center gap-3">
-                <button onClick={() => setSelected(null)} className="rounded p-1 hover:bg-muted lg:hidden">
+                <button onClick={() => setSelectedId(null)} className="rounded p-1 hover:bg-muted lg:hidden">
                   <MoreVertical className="h-5 w-5" />
                 </button>
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-bold text-white">

@@ -1,14 +1,18 @@
 import { db } from '@/lib/db'
 import { ok, err } from '@/lib/api'
+import { setSessionCookie } from '@/lib/auth'
+import { loginSchema, parseBody } from '@/lib/validations'
 import { NextRequest } from 'next/server'
 import { createHash, randomBytes } from 'crypto'
 
 // POST /api/v1/auth/login
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json()
-    if (!email || !password) return err('VALIDATION_ERROR', 'Email and password are required', 400)
+    const body = await req.json().catch(() => ({}))
+    const parsed = parseBody(loginSchema, body)
+    if (!parsed.success) return err('VALIDATION_ERROR', parsed.error, 400)
 
+    const { email, password } = parsed.data
     const user = await db.user.findUnique({ where: { email: email.toLowerCase() } })
     if (!user || !user.passwordHash) return err('UNAUTHORIZED', 'Invalid email or password', 401)
 
@@ -26,10 +30,27 @@ export async function POST(req: NextRequest) {
       },
     })
 
+    // Set httpOnly cookie
+    await setSessionCookie(token)
+
     const membership = await db.organizationMember.findFirst({
       where: { userId: user.id },
       include: { organization: true },
     })
+
+    // Audit log
+    if (membership) {
+      await db.auditLog.create({
+        data: {
+          organizationId: membership.organizationId,
+          userId: user.id,
+          action: 'LOGIN',
+          entityType: 'User',
+          entityId: user.id,
+          newData: { email: user.email, timestamp: new Date().toISOString() },
+        },
+      }).catch(() => {})
+    }
 
     return ok({
       user: { id: user.id, name: user.name, email: user.email },

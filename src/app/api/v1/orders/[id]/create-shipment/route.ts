@@ -1,5 +1,7 @@
 import { db } from '@/lib/db'
-import { requireOrg, ok, err } from '@/lib/api'
+import { ok, err } from '@/lib/api'
+import { getAuthContext, auditLog } from '@/lib/auth'
+import { createShipmentSchema, parseBody } from '@/lib/validations'
 import { NextRequest } from 'next/server'
 
 // POST /api/v1/orders/:id/create-shipment
@@ -8,18 +10,21 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const org = await requireOrg()
+    const ctx = await getAuthContext()
+    if (!ctx) return err('UNAUTHORIZED', 'Authentication required', 401)
+
     const { id } = await params
-    const body = await req.json()
-    const { courierAccountId } = body
+    const body = await req.json().catch(() => ({}))
+    const parsed = parseBody(createShipmentSchema, body)
+    if (!parsed.success) return err('VALIDATION_ERROR', parsed.error, 400)
 
-    if (!courierAccountId) return err('VALIDATION_ERROR', 'courierAccountId is required', 400)
+    const { courierAccountId } = parsed.data
 
-    const order = await db.order.findFirst({ where: { id, organizationId: org.id } })
+    const order = await db.order.findFirst({ where: { id, organizationId: ctx.organization.id } })
     if (!order) return err('NOT_FOUND', 'Order not found', 404)
 
     const courierAccount = await db.courierAccount.findFirst({
-      where: { id: courierAccountId, organizationId: org.id },
+      where: { id: courierAccountId, organizationId: ctx.organization.id },
     })
     if (!courierAccount) return err('NOT_FOUND', 'Courier account not found', 404)
 
@@ -30,7 +35,7 @@ export async function POST(
     const oldStatus = order.status
     const shipment = await db.shipment.create({
       data: {
-        organizationId: org.id,
+        organizationId: ctx.organization.id,
         orderId: order.id,
         courierAccountId: courierAccount.id,
         trackingNumber,
@@ -68,6 +73,20 @@ export async function POST(
         newStatus: 'SHIPMENT_CREATED',
         reason: `Shipment created with ${courierAccount.provider}`,
         source: 'API',
+      },
+    })
+
+    await auditLog({
+      organizationId: ctx.organization.id,
+      userId: ctx.user.id,
+      action: 'SHIPMENT_CREATED',
+      entityType: 'Shipment',
+      entityId: shipment.id,
+      newData: {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        courier: courierAccount.provider,
+        trackingNumber,
       },
     })
 

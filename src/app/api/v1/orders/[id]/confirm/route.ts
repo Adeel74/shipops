@@ -1,5 +1,7 @@
 import { db } from '@/lib/db'
-import { requireOrg, ok, err } from '@/lib/api'
+import { ok, err } from '@/lib/api'
+import { getAuthContext, auditLog } from '@/lib/auth'
+import { confirmOrderSchema, parseBody } from '@/lib/validations'
 import { NextRequest } from 'next/server'
 
 // POST /api/v1/orders/:id/confirm
@@ -8,12 +10,17 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const org = await requireOrg()
+    const ctx = await getAuthContext()
+    if (!ctx) return err('UNAUTHORIZED', 'Authentication required', 401)
+
     const { id } = await params
     const body = await req.json().catch(() => ({}))
-    const method = body.method || 'MANUAL'
+    const parsed = parseBody(confirmOrderSchema, body)
+    if (!parsed.success) return err('VALIDATION_ERROR', parsed.error, 400)
 
-    const order = await db.order.findFirst({ where: { id, organizationId: org.id } })
+    const method = parsed.data.method || 'MANUAL'
+
+    const order = await db.order.findFirst({ where: { id, organizationId: ctx.organization.id } })
     if (!order) return err('NOT_FOUND', 'Order not found', 404)
 
     const oldStatus = order.status
@@ -30,6 +37,17 @@ export async function POST(
         reason: `Confirmed via ${method}`,
         source: 'API',
       },
+    })
+
+    // Audit log
+    await auditLog({
+      organizationId: ctx.organization.id,
+      userId: ctx.user.id,
+      action: 'ORDER_CONFIRMED',
+      entityType: 'Order',
+      entityId: order.id,
+      oldData: { status: oldStatus },
+      newData: { status: 'CONFIRMED', method, orderNumber: order.orderNumber },
     })
 
     return ok({ orderId: order.id, status: 'CONFIRMED' })

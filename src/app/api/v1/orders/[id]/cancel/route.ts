@@ -1,5 +1,7 @@
 import { db } from '@/lib/db'
-import { requireOrg, ok, err } from '@/lib/api'
+import { ok, err } from '@/lib/api'
+import { getAuthContext, auditLog } from '@/lib/auth'
+import { cancelOrderSchema, parseBody } from '@/lib/validations'
 import { NextRequest } from 'next/server'
 
 // POST /api/v1/orders/:id/cancel
@@ -8,12 +10,17 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const org = await requireOrg()
+    const ctx = await getAuthContext()
+    if (!ctx) return err('UNAUTHORIZED', 'Authentication required', 401)
+
     const { id } = await params
     const body = await req.json().catch(() => ({}))
-    const reason = body.reason || 'Cancelled by operator'
+    const parsed = parseBody(cancelOrderSchema, body)
+    if (!parsed.success) return err('VALIDATION_ERROR', parsed.error, 400)
 
-    const order = await db.order.findFirst({ where: { id, organizationId: org.id } })
+    const reason = parsed.data.reason || 'Cancelled by operator'
+
+    const order = await db.order.findFirst({ where: { id, organizationId: ctx.organization.id } })
     if (!order) return err('NOT_FOUND', 'Order not found', 404)
 
     const oldStatus = order.status
@@ -27,6 +34,16 @@ export async function POST(
         reason,
         source: 'API',
       },
+    })
+
+    await auditLog({
+      organizationId: ctx.organization.id,
+      userId: ctx.user.id,
+      action: 'ORDER_CANCELLED',
+      entityType: 'Order',
+      entityId: order.id,
+      oldData: { status: oldStatus },
+      newData: { status: 'CANCELLED', reason, orderNumber: order.orderNumber },
     })
 
     return ok({ orderId: order.id, status: 'CANCELLED' })

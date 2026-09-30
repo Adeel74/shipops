@@ -3,8 +3,21 @@
 import { Menu, Search, Bell, ChevronDown, Store } from "lucide-react";
 import { useState } from "react";
 import type { UserRole, ViewKey } from "@/lib/types";
-import { userRoleConfig } from "@/lib/format";
+import { userRoleConfig, formatTimeAgo } from "@/lib/format";
+import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
+
+interface NotifData {
+  notifications: Array<{
+    id: string;
+    title: string;
+    description: string;
+    type: 'URGENT' | 'WARNING' | 'INFO' | 'SUCCESS';
+    time: string;
+    actionUrl?: string;
+  }>;
+  unread: number;
+}
 
 interface TopbarProps {
   userRole: UserRole;
@@ -37,6 +50,7 @@ const viewTitles: Record<ViewKey, { title: string; subtitle: string }> = {
 export function Topbar({ userRole, currentView, onMenuClick, onRoleChange, userName, orgName, onLogout }: TopbarProps) {
   const [roleOpen, setRoleOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const { data: notifData, loading: notifLoading } = useApi<NotifData>("/api/v1/notifications");
   const meta = viewTitles[currentView];
 
   return (
@@ -81,33 +95,44 @@ export function Topbar({ userRole, currentView, onMenuClick, onRoleChange, userN
               aria-label="Notifications"
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute right-1.5 top-1.5 flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
-              </span>
+              {notifData && notifData.unread > 0 && (
+                <span className="absolute right-1.5 top-1.5 flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                </span>
+              )}
             </button>
             {notifOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setNotifOpen(false)} />
                 <div className="absolute right-0 top-12 z-50 w-80 overflow-hidden rounded-lg border border-border bg-popover shadow-lg">
-                  <div className="border-b border-border bg-muted/30 px-4 py-3">
+                  <div className="border-b border-border bg-muted/30 px-4 py-3 flex items-center justify-between">
                     <p className="text-sm font-semibold">Notifications</p>
+                    {notifData && notifData.unread > 0 && (
+                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">{notifData.unread} new</span>
+                    )}
                   </div>
                   <div className="max-h-80 overflow-y-auto">
-                    {[
-                      { t: "Urgent: Maham Ali refused delivery", time: "19h ago", color: "bg-red-500" },
-                      { t: "AI flagged #1045 as HIGH RTO risk (78%)", time: "23m ago", color: "bg-amber-500" },
-                      { t: "TCS API: 2 shipments stuck at sort hub", time: "1h ago", color: "bg-orange-500" },
-                      { t: "Bilal Ahmed confirmed order #1044", time: "40m ago", color: "bg-emerald-500" },
-                    ].map((n, i) => (
-                      <div key={i} className="flex gap-3 border-b border-border px-4 py-3 last:border-0 hover:bg-muted/30">
-                        <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", n.color)} />
-                        <div className="min-w-0">
-                          <p className="text-sm leading-snug">{n.t}</p>
-                          <p className="text-xs text-muted-foreground">{n.time}</p>
+                    {notifLoading ? (
+                      <div className="px-4 py-6 text-center text-sm text-muted-foreground">Loading...</div>
+                    ) : notifData && notifData.notifications.length > 0 ? (
+                      notifData.notifications.map((n) => (
+                        <div key={n.id} className="flex gap-3 border-b border-border px-4 py-3 last:border-0 hover:bg-muted/30">
+                          <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full",
+                            n.type === 'URGENT' ? 'bg-red-500' :
+                            n.type === 'WARNING' ? 'bg-amber-500' :
+                            n.type === 'SUCCESS' ? 'bg-emerald-500' :
+                            'bg-sky-500'
+                          )} />
+                          <div className="min-w-0">
+                            <p className="text-sm leading-snug">{n.title}</p>
+                            <p className="text-xs text-muted-foreground">{formatTimeAgo(n.time)}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <div className="px-4 py-6 text-center text-sm text-muted-foreground">No notifications</div>
+                    )}
                   </div>
                   <button className="w-full border-t border-border bg-muted/30 py-2 text-center text-xs font-medium text-primary hover:bg-muted/60">
                     View all notifications
@@ -163,7 +188,7 @@ export function Topbar({ userRole, currentView, onMenuClick, onRoleChange, userN
                       ))}
                     </div>
                   </div>
-                  <button onClick={onLogout} className="w-full py-2 text-center text-xs font-medium text-red-600 hover:bg-red-50">
+                  <button onClick={async () => { await fetch('/api/v1/auth/logout', { method: 'POST' }); onLogout?.(); }} className="w-full py-2 text-center text-xs font-medium text-red-600 hover:bg-red-50">
                     Sign out
                   </button>
                 </div>
