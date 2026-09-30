@@ -1,10 +1,24 @@
 "use client";
 
-import { Store, Shield, Bell, Globe, CreditCard, Webhook, Key, Copy, Check, ExternalLink, Database } from "lucide-react";
+import { Store, Shield, Bell, Globe, CreditCard, Webhook, Key, Copy, Check, ExternalLink, Database, ScrollText } from "lucide-react";
 import { useState } from "react";
 import { PageContainer, SectionCard } from "../shared";
+import { useApi } from "@/hooks/use-api";
+import { formatTimeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+
+interface AuditLogEntry {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  user: { name: string; email: string } | null;
+  oldData: unknown;
+  newData: unknown;
+  ipAddress: string | null;
+  createdAt: string;
+}
 
 export function SettingsView() {
   const { toast } = useToast();
@@ -17,6 +31,7 @@ export function SettingsView() {
     dailySummary: false,
     courierErrors: true,
   });
+  const { data: auditData } = useApi<{ logs: AuditLogEntry[]; total: number }>("/api/v1/audit-logs?limit=20");
 
   return (
     <PageContainer className="space-y-5">
@@ -261,6 +276,53 @@ export function SettingsView() {
             <Key className="h-3.5 w-3.5" />
             Rotate API Key
           </button>
+        </div>
+      </SectionCard>
+
+      {/* Audit Log */}
+      <SectionCard
+        title="Audit Log"
+        description="Recent activity in your organization"
+        action={<ScrollText className="h-4 w-4 text-muted-foreground" />}
+        bodyClassName="p-0"
+      >
+        <div className="max-h-96 overflow-y-auto">
+          {auditData && auditData.logs.length > 0 ? (
+            <table className="w-full text-sm">
+              <thead className="sticky top-0 bg-muted/30">
+                <tr className="text-left text-xs text-muted-foreground">
+                  <th className="px-4 py-2 font-medium">Action</th>
+                  <th className="px-4 py-2 font-medium">User</th>
+                  <th className="hidden px-4 py-2 font-medium sm:table-cell">Entity</th>
+                  <th className="px-4 py-2 text-right font-medium">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditData.logs.map((log) => (
+                  <tr key={log.id} className="border-t border-border/60 hover:bg-muted/20">
+                    <td className="px-4 py-2">
+                      <span className={cn(
+                        "inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold",
+                        log.action.includes('CONFIRM') ? 'bg-emerald-100 text-emerald-700' :
+                        log.action.includes('CANCEL') ? 'bg-rose-100 text-rose-700' :
+                        log.action.includes('SHIPMENT') ? 'bg-indigo-100 text-indigo-700' :
+                        log.action.includes('LOGIN') || log.action.includes('LOGOUT') ? 'bg-zinc-100 text-zinc-700' :
+                        log.action.includes('INVITE') ? 'bg-violet-100 text-violet-700' :
+                        'bg-sky-100 text-sky-700'
+                      )}>
+                        {log.action}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-xs">{log.user?.name || 'System'}</td>
+                    <td className="hidden px-4 py-2 text-xs text-muted-foreground sm:table-cell">{log.entityType}</td>
+                    <td className="px-4 py-2 text-right text-xs text-muted-foreground">{formatTimeAgo(log.createdAt)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">No audit entries yet</div>
+          )}
         </div>
       </SectionCard>
     </PageContainer>

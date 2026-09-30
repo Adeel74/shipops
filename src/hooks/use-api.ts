@@ -9,11 +9,17 @@ interface UseApiState<T> {
   refetch: () => void;
 }
 
+interface UseApiOptions {
+  /** Auto-refresh interval in milliseconds (0 = disabled) */
+  refreshInterval?: number;
+}
+
 /**
  * Hook for fetching data from the ShipOps API.
  * Returns { data, loading, error, refetch }.
+ * Supports optional polling via refreshInterval.
  */
-export function useApi<T>(url: string | null, options?: RequestInit): UseApiState<T> {
+export function useApi<T>(url: string | null, options?: UseApiOptions & RequestInit): UseApiState<T> {
   const [state, setState] = useState<UseApiState<T>>({
     data: null,
     loading: !!url,
@@ -55,6 +61,15 @@ export function useApi<T>(url: string | null, options?: RequestInit): UseApiStat
       cancelled = true;
     };
   }, [url, nonce]);
+
+  // Auto-refresh polling
+  useEffect(() => {
+    if (!url || !options?.refreshInterval) return;
+    const interval = setInterval(() => {
+      setNonce((n) => n + 1);
+    }, options.refreshInterval);
+    return () => clearInterval(interval);
+  }, [url, options?.refreshInterval]);
 
   return { ...state, refetch };
 }

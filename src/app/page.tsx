@@ -36,15 +36,15 @@ export default function Home() {
   const [view, setView] = useState<ViewKey>("dashboard");
   const [role, setRole] = useState<UserRole>("OWNER");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Drawer can be opened with a full Order object (from table rows) or an orderId (from search)
   const [drawerOrder, setDrawerOrder] = useState<Order | null>(null);
+  const [drawerOrderId, setDrawerOrderId] = useState<string | null>(null);
 
   const handleAuthSuccess = (u: SessionUser, r: string, org: string) => {
     setUser(u);
     setRole(r as UserRole);
     setOrgName(org);
     setAuthed(true);
-    // Show onboarding only for newly created accounts (signup), not login
-    // For demo: show onboarding when the org name is NOT "Demo Store PK"
     if (org !== "Demo Store PK") {
       setOnboarding(true);
     }
@@ -55,6 +55,21 @@ export default function Home() {
     setUser(null);
     setOnboarding(false);
     setView("dashboard");
+  };
+
+  const openDrawer = (orderOrId: Order | string) => {
+    if (typeof orderOrId === "string") {
+      setDrawerOrderId(orderOrId);
+      setDrawerOrder(null);
+    } else {
+      setDrawerOrder(orderOrId);
+      setDrawerOrderId(null);
+    }
+  };
+
+  const closeDrawer = () => {
+    setDrawerOrder(null);
+    setDrawerOrderId(null);
   };
 
   if (!authed) {
@@ -73,7 +88,7 @@ export default function Home() {
 
   const renderView = () => {
     switch (view) {
-      case "dashboard": return <DashboardView onNavigate={setView} onOpenOrder={setDrawerOrder} />;
+      case "dashboard": return <DashboardView onNavigate={setView} onOpenOrder={openDrawer} />;
       case "unconfirmed": return <UnconfirmedView />;
       case "confirmed": return <ConfirmedView />;
       case "tracking": return <TrackingView />;
@@ -88,7 +103,7 @@ export default function Home() {
       case "settings": return <SettingsView />;
       case "billing": return <BillingView />;
       case "team": return <TeamView />;
-      default: return <DashboardView onNavigate={setView} onOpenOrder={setDrawerOrder} />;
+      default: return <DashboardView onNavigate={setView} onOpenOrder={openDrawer} />;
     }
   };
 
@@ -107,6 +122,8 @@ export default function Home() {
           currentView={view}
           onMenuClick={() => setSidebarOpen(true)}
           onRoleChange={setRole}
+          onNavigate={setView}
+          onOpenOrder={openDrawer}
           userName={user?.name}
           orgName={orgName}
           onLogout={handleLogout}
@@ -115,7 +132,11 @@ export default function Home() {
           {renderView()}
         </main>
       </div>
-      <OrderDrawer order={drawerOrder} onClose={() => setDrawerOrder(null)} />
+      <OrderDrawer
+        order={drawerOrder}
+        orderId={drawerOrderId}
+        onClose={closeDrawer}
+      />
     </div>
   );
 }

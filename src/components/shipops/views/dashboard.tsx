@@ -35,7 +35,7 @@ interface DashboardViewProps {
 }
 
 export function DashboardView({ onNavigate, onOpenOrder }: DashboardViewProps) {
-  const { data: m, loading } = useApi<DashboardData>("/api/v1/dashboard");
+  const { data: m, loading } = useApi<DashboardData>("/api/v1/dashboard", { refreshInterval: 30000 });
   const maxDispatched = Math.max(...deliveryTrend.map((d) => d.dispatched));
 
   if (loading || !m) {

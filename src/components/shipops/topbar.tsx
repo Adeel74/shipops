@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { UserRole, ViewKey } from "@/lib/types";
 import { userRoleConfig, formatTimeAgo } from "@/lib/format";
 import { useApi } from "@/hooks/use-api";
+import { SearchBox } from "./search-box";
 import { cn } from "@/lib/utils";
 
 interface NotifData {
@@ -24,6 +25,8 @@ interface TopbarProps {
   currentView: ViewKey;
   onMenuClick: () => void;
   onRoleChange: (role: UserRole) => void;
+  onNavigate?: (view: ViewKey) => void;
+  onOpenOrder?: (orderId: string) => void;
   userName?: string;
   orgName?: string;
   onLogout?: () => void;
@@ -47,7 +50,7 @@ const viewTitles: Record<ViewKey, { title: string; subtitle: string }> = {
   team: { title: "Team Members", subtitle: "Roles, permissions & invitations" },
 };
 
-export function Topbar({ userRole, currentView, onMenuClick, onRoleChange, userName, orgName, onLogout }: TopbarProps) {
+export function Topbar({ userRole, currentView, onMenuClick, onRoleChange, onNavigate, onOpenOrder, userName, orgName, onLogout }: TopbarProps) {
   const [roleOpen, setRoleOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const { data: notifData, loading: notifLoading } = useApi<NotifData>("/api/v1/notifications");
@@ -71,14 +74,7 @@ export function Topbar({ userRole, currentView, onMenuClick, onRoleChange, userN
 
         <div className="flex items-center gap-2">
           {/* Search */}
-          <div className="relative hidden md:block">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search orders, customers, tracking..."
-              className="h-9 w-64 rounded-md border border-input bg-muted/40 pl-9 pr-3 text-sm outline-none transition-colors focus:border-ring focus:bg-background focus:ring-2 focus:ring-ring/20 lg:w-72"
-            />
-          </div>
+          <SearchBox onNavigate={onNavigate || (() => {})} onOpenOrder={onOpenOrder} />
 
           {/* Store selector */}
           <div className="hidden items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-sm sm:flex">
