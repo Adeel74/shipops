@@ -21,6 +21,7 @@ model User {
   email        String   @unique
   passwordHash String?
   isSuperAdmin Boolean  @default(false)
+  status       String   @default("ACTIVE") // ACTIVE | SUSPENDED
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -36,19 +37,38 @@ model Organization {
   country   String?
   timezone  String   @default("Asia/Karachi")
   currency  String   @default("PKR")
+  status    String   @default("ACTIVE") // ACTIVE | SUSPENDED
+  planId    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members     OrganizationMember[]
-  stores      Store[]
-  customers   Customer[]
-  products    Product[]
-  orders      Order[]
-  couriers    CourierAccount[]
-  cases       AttentionCase[]
-  automations AutomationRule[]
-  invitations OrganizationInvitation[]
-  auditLogs   AuditLog[]
+  plan         Plan?               @relation(fields: [planId], references: [id])
+  members      OrganizationMember[]
+  stores       Store[]
+  customers    Customer[]
+  products     Product[]
+  orders       Order[]
+  couriers     CourierAccount[]
+  cases        AttentionCase[]
+  automations  AutomationRule[]
+  invitations  OrganizationInvitation[]
+  auditLogs    AuditLog[]
+}
+
+model Plan {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  pricePerMonth   Float
+  orderLimit      Int      @default(500)
+  memberLimit     Int      @default(3)
+  courierLimit    Int      @default(1)
+  features        String   @default("[]") // JSON array of feature strings
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organizations Organization[]
 }
 
 model OrganizationMember {

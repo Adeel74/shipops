@@ -58,6 +58,8 @@ export async function GET(req: NextRequest) {
           country: org.country,
           timezone: org.timezone,
           currency: org.currency,
+          status: org.status,
+          planId: org.planId,
           createdAt: org.createdAt.toISOString(),
           owner: owner ? { name: owner.user.name, email: owner.user.email } : null,
           stores: org.stores,

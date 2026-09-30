@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
         name: u.name,
         email: u.email,
         isSuperAdmin: u.isSuperAdmin,
+        status: u.status,
         createdAt: u.createdAt.toISOString(),
         memberships: u.memberships.map((m) => ({
           role: m.role,

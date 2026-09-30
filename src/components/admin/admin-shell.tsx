@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Ship, ShieldCheck, LayoutDashboard, Building2, Users, Package, Activity, LogOut, ExternalLink, Menu, X } from "lucide-react";
+import { Ship, ShieldCheck, LayoutDashboard, Building2, Users, Package, Activity, LogOut, ExternalLink, Menu, X, CreditCard, ScrollText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type AdminView = "dashboard" | "organizations" | "users" | "orders" | "system";
+export type AdminView = "dashboard" | "organizations" | "users" | "orders" | "plans" | "activity" | "system";
 
 interface AdminShellProps {
   currentView: AdminView;
@@ -18,6 +18,8 @@ const navItems: { key: AdminView; label: string; icon: typeof LayoutDashboard }[
   { key: "organizations", label: "Organizations", icon: Building2 },
   { key: "users", label: "Users", icon: Users },
   { key: "orders", label: "Orders", icon: Package },
+  { key: "plans", label: "Plans & Pricing", icon: CreditCard },
+  { key: "activity", label: "Activity Log", icon: ScrollText },
   { key: "system", label: "System", icon: Activity },
 ];
 
