@@ -4,18 +4,41 @@ import { Package, Plus, Check, X, TrendingUp, Truck, Settings as SettingsIcon, E
 import { formatPKR } from "@/lib/format";
 import { PageContainer, SectionCard } from "../shared";
 import { LoadingScreen } from "../loading";
-import { useApi } from "@/hooks/use-api";
+import { useApi, apiPost, apiPatch } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { CourierIntegration } from "@/lib/types";
 
 export function CouriersView() {
   const { toast } = useToast();
-  const { data, loading } = useApi<{ couriers: CourierIntegration[] }>("/api/v1/couriers");
+  const { data, loading, refetch } = useApi<{ couriers: CourierIntegration[] }>("/api/v1/couriers");
 
   if (loading || !data) return <PageContainer><LoadingScreen message="Loading courier integrations..." /></PageContainer>;
 
   const courierIntegrations = data.couriers;
+
+  const handleConnect = async (provider: string, displayName: string) => {
+    const res = await apiPost("/api/v1/couriers/connect", {
+      provider,
+      accountName: `${displayName} Account`,
+    });
+    if (res.success) {
+      toast({ title: `${displayName} connected!`, description: "You can now dispatch orders via this courier" });
+      refetch();
+    } else {
+      toast({ title: "Connection failed", description: res.error, variant: "destructive" });
+    }
+  };
+
+  const handleDisconnect = async (id: string, displayName: string) => {
+    const res = await apiPatch(`/api/v1/couriers/${id}`, { status: "DISCONNECTED" });
+    if (res.success) {
+      toast({ title: `${displayName} disconnected`, description: "You can reconnect anytime" });
+      refetch();
+    } else {
+      toast({ title: "Failed to disconnect", description: res.error, variant: "destructive" });
+    }
+  };
 
   return (
     <PageContainer className="space-y-5">
@@ -102,7 +125,7 @@ export function CouriersView() {
                   </>
                 ) : (
                   <button
-                    onClick={() => toast({ title: "Connecting...", description: `${c.displayName} OAuth flow will start` })}
+                    onClick={() => handleConnect(c.provider, c.displayName)}
                     className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
                   >
                     <Plus className="h-3.5 w-3.5" />

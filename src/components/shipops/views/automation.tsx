@@ -5,7 +5,7 @@ import { Zap, Plus, Play, Pause, CheckCircle2, Clock, TrendingUp, MoreHorizontal
 import { formatTimeAgo } from "@/lib/format";
 import { PageContainer, SectionCard, EmptyState } from "../shared";
 import { LoadingScreen } from "../loading";
-import { useApi } from "@/hooks/use-api";
+import { useApi, apiPatch } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { AutomationRule } from "@/lib/types";
@@ -32,13 +32,21 @@ export function AutomationView() {
     return base.map((r) => localOverrides[r.id] !== undefined ? { ...r, enabled: localOverrides[r.id] } : r);
   }, [data, localOverrides]);
 
-  const toggleRule = (id: string) => {
+  const toggleRule = async (id: string) => {
     const rule = rules.find((r) => r.id === id);
-    setLocalOverrides((prev) => ({ ...prev, [id]: !rule?.enabled }));
+    const newEnabled = !rule?.enabled;
+    setLocalOverrides((prev) => ({ ...prev, [id]: newEnabled }));
     toast({
-      title: rule?.enabled ? "Rule paused" : "Rule activated",
+      title: newEnabled ? "Rule activated" : "Rule paused",
       description: rule?.name,
     });
+    // Persist to API
+    const res = await apiPatch(`/api/v1/automation/${id}`, { enabled: newEnabled });
+    if (!res.success) {
+      // Revert on failure
+      setLocalOverrides((prev) => ({ ...prev, [id]: !newEnabled }));
+      toast({ title: "Failed to update rule", description: res.error, variant: "destructive" });
+    }
   };
 
   const totalRuns = rules.reduce((s, r) => s + r.runsLast30Days, 0);

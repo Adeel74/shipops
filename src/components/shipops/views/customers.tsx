@@ -6,12 +6,12 @@ import { orders as mockOrders } from "@/lib/mock-data";
 import { formatPKRFull, formatTimeAgo, riskLevelConfig } from "@/lib/format";
 import { PageContainer, SectionCard, EmptyState, RiskBadge, RiskMeter, StatusBadge, CourierTag } from "../shared";
 import { LoadingScreen } from "../loading";
-import { useApi } from "@/hooks/use-api";
+import { useApi, apiPost } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import type { Customer } from "@/lib/types";
 
 export function CustomersView() {
-  const { data, loading } = useApi<{ customers: Customer[] }>("/api/v1/customers");
+  const { data, loading, refetch } = useApi<{ customers: Customer[] }>("/api/v1/customers");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState<"ALL" | "HIGH" | "MEDIUM" | "LOW">("ALL");
@@ -220,7 +220,7 @@ export function CustomersView() {
               </SectionCard>
 
               {/* Quick actions */}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100">
                   <MessageCircle className="h-4 w-4" />
                   Message on WhatsApp
@@ -228,6 +228,32 @@ export function CustomersView() {
                 <button className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 py-2.5 text-sm font-medium text-sky-700 hover:bg-sky-100">
                   <Phone className="h-4 w-4" />
                   Call Customer
+                </button>
+                <button
+                  onClick={async () => {
+                    const res = await apiPost(`/api/v1/customers/${selected.id}/flag`, {
+                      flag: selected.riskLevel !== 'HIGH',
+                      reason: 'Manual flag by operator',
+                    });
+                    if (res.success) {
+                      toast({
+                        title: selected.riskLevel === 'HIGH' ? 'Customer unflagged' : 'Customer blacklisted',
+                        description: `${selected.firstName} ${selected.lastName} risk level updated`,
+                      });
+                      refetch();
+                    } else {
+                      toast({ title: 'Failed to update', description: res.error, variant: 'destructive' });
+                    }
+                  }}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-1.5 rounded-lg border py-2.5 text-sm font-medium",
+                    selected.riskLevel === 'HIGH'
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                      : "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                  )}
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  {selected.riskLevel === 'HIGH' ? 'Unflag Customer' : 'Blacklist Customer'}
                 </button>
               </div>
             </div>

@@ -1,9 +1,9 @@
 "use client";
 
-import { Store, Shield, Bell, Globe, CreditCard, Webhook, Key, Copy, Check, ExternalLink, Database, ScrollText } from "lucide-react";
+import { Store, Shield, Bell, Globe, CreditCard, Webhook, Key, Copy, Check, ExternalLink, Database, ScrollText, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { PageContainer, SectionCard } from "../shared";
-import { useApi } from "@/hooks/use-api";
+import { useApi, apiPatch } from "@/hooks/use-api";
 import { formatTimeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -20,10 +20,26 @@ interface AuditLogEntry {
   createdAt: string;
 }
 
+interface OrgData {
+  organization: {
+    id: string;
+    name: string;
+    slug: string;
+    country: string | null;
+    timezone: string;
+    currency: string;
+  };
+}
+
 export function SettingsView() {
   const { toast } = useToast();
   const [shopifyConnected, setShopifyConnected] = useState(true);
   const [whatsappConnected, setWhatsappConnected] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [orgName, setOrgName] = useState("");
+  const [orgCountry, setOrgCountry] = useState("Pakistan");
+  const [orgTimezone, setOrgTimezone] = useState("Asia/Karachi");
+  const [orgCurrency, setOrgCurrency] = useState("PKR");
   const [notifPrefs, setNotifPrefs] = useState({
     newOrders: true,
     attentionCases: true,
@@ -32,6 +48,30 @@ export function SettingsView() {
     courierErrors: true,
   });
   const { data: auditData } = useApi<{ logs: AuditLogEntry[]; total: number }>("/api/v1/audit-logs?limit=20");
+  const { data: orgData } = useApi<OrgData>("/api/v1/organizations/current");
+
+  // Sync form state when org data loads
+  const currentOrg = orgData?.organization;
+  const formOrgName = orgName || currentOrg?.name || "Demo Store PK";
+  const formCountry = orgCountry || (currentOrg?.country || "Pakistan");
+  const formTimezone = orgTimezone || (currentOrg?.timezone || "Asia/Karachi");
+  const formCurrency = orgCurrency || (currentOrg?.currency || "PKR");
+
+  const handleSave = async () => {
+    setSaving(true);
+    const res = await apiPatch("/api/v1/organizations/current", {
+      name: formOrgName,
+      country: formCountry,
+      timezone: formTimezone,
+      currency: formCurrency,
+    });
+    setSaving(false);
+    if (res.success) {
+      toast({ title: "Settings saved", description: "Organization details updated" });
+    } else {
+      toast({ title: "Failed to save", description: res.error, variant: "destructive" });
+    }
+  };
 
   return (
     <PageContainer className="space-y-5">
@@ -40,15 +80,20 @@ export function SettingsView() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Organization Name</label>
-            <input type="text" defaultValue="Demo Store PK" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+            <input
+              type="text"
+              value={formOrgName}
+              onChange={(e) => setOrgName(e.target.value)}
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20"
+            />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Slug</label>
-            <input type="text" defaultValue="demo-store-pk" className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring focus:ring-2 focus:ring-ring/20" />
+            <input type="text" value={currentOrg?.slug || "demo-store-pk"} disabled className="h-9 w-full rounded-md border border-input bg-muted/40 px-3 text-sm text-muted-foreground" />
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Country</label>
-            <select className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring">
+            <select value={formCountry} onChange={(e) => setOrgCountry(e.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring">
               <option>Pakistan</option>
               <option>Bangladesh</option>
               <option>India</option>
@@ -57,20 +102,20 @@ export function SettingsView() {
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Timezone</label>
-            <select className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring">
-              <option>Asia/Karachi (PKT)</option>
-              <option>Asia/Dhaka (BST)</option>
-              <option>Asia/Kolkata (IST)</option>
-              <option>Asia/Dubai (GST)</option>
+            <select value={formTimezone} onChange={(e) => setOrgTimezone(e.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring">
+              <option value="Asia/Karachi">Asia/Karachi (PKT)</option>
+              <option value="Asia/Dhaka">Asia/Dhaka (BST)</option>
+              <option value="Asia/Kolkata">Asia/Kolkata (IST)</option>
+              <option value="Asia/Dubai">Asia/Dubai (GST)</option>
             </select>
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-muted-foreground">Currency</label>
-            <select className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring">
-              <option>PKR — Pakistani Rupee</option>
-              <option>BDT — Bangladeshi Taka</option>
-              <option>INR — Indian Rupee</option>
-              <option>AED — UAE Dirham</option>
+            <select value={formCurrency} onChange={(e) => setOrgCurrency(e.target.value)} className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus:border-ring">
+              <option value="PKR">PKR — Pakistani Rupee</option>
+              <option value="BDT">BDT — Bangladeshi Taka</option>
+              <option value="INR">INR — Indian Rupee</option>
+              <option value="AED">AED — UAE Dirham</option>
             </select>
           </div>
           <div>
@@ -84,8 +129,12 @@ export function SettingsView() {
           </div>
         </div>
         <div className="mt-4 flex justify-end">
-          <button onClick={() => toast({ title: "Settings saved" })} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-            Save Changes
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            {saving ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Saving...</> : "Save Changes"}
           </button>
         </div>
       </SectionCard>
