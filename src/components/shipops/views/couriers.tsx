@@ -1,14 +1,21 @@
 "use client";
 
 import { Package, Plus, Check, X, TrendingUp, Truck, Settings as SettingsIcon, ExternalLink } from "lucide-react";
-import { courierIntegrations } from "@/lib/mock-data";
 import { formatPKR } from "@/lib/format";
 import { PageContainer, SectionCard } from "../shared";
+import { LoadingScreen } from "../loading";
+import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import type { CourierIntegration } from "@/lib/types";
 
 export function CouriersView() {
   const { toast } = useToast();
+  const { data, loading } = useApi<{ couriers: CourierIntegration[] }>("/api/v1/couriers");
+
+  if (loading || !data) return <PageContainer><LoadingScreen message="Loading courier integrations..." /></PageContainer>;
+
+  const courierIntegrations = data.couriers;
 
   return (
     <PageContainer className="space-y-5">

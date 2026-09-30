@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AlertTriangle, Sparkles, MapPinOff, PhoneOff, UserX, PackageX, Clock, Copy, Send, Check, ArrowUpRight, MessageCircle, Phone } from "lucide-react";
-import { attentionCases, orders } from "@/lib/mock-data";
 import { formatTimeAgo, formatDateTime } from "@/lib/format";
-import { PageContainer, SectionCard, EmptyState, CourierTag } from "../shared";
+import { PageContainer, SectionCard, EmptyState } from "../shared";
+import { LoadingScreen } from "../loading";
+import { useApi, apiPost } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { AttentionType, AttentionCase } from "@/lib/types";
@@ -40,15 +41,26 @@ const priorityConfig: Record<string, { color: string; bg: string }> = {
 
 export function AttentionView() {
   const { toast } = useToast();
-  const [selected, setSelected] = useState<AttentionCase | null>(attentionCases[0] || null);
+  const { data, loading, refetch } = useApi<{ cases: AttentionCase[] }>("/api/v1/attention");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [resolved, setResolved] = useState<Set<string>>(new Set());
 
-  const openCases = attentionCases.filter((c) => !resolved.has(c.id));
-  const selectedOrder = selected ? orders.find((o) => o.id === selected.orderId) : null;
+  const allCases = data?.cases || [];
+  const openCases = allCases.filter((c) => !resolved.has(c.id));
 
-  const handleResolve = (c: AttentionCase) => {
-    setResolved((prev) => new Set(prev).add(c.id));
-    toast({ title: "Case resolved", description: `${c.title} for ${c.customerName} has been marked resolved.` });
+  const selected = useMemo(() => {
+    if (openCases.length === 0) return null;
+    return openCases.find((c) => c.id === selectedId) || openCases[0];
+  }, [openCases, selectedId]);
+
+  const handleResolve = async (c: AttentionCase) => {
+    const res = await apiPost(`/api/v1/attention/${c.id}/resolve`, { resolution: "Resolved by operator" });
+    if (res.success) {
+      setResolved((prev) => new Set(prev).add(c.id));
+      setSelectedId(null);
+      toast({ title: "Case resolved", description: `${c.title} for ${c.customerName} has been marked resolved.` });
+      refetch();
+    }
   };
 
   const handleContact = (method: "whatsapp" | "call") => {
@@ -57,6 +69,8 @@ export function AttentionView() {
       description: method === "whatsapp" ? "Recovery message sent to customer" : "Connecting to customer phone...",
     });
   };
+
+  if (loading) return <PageContainer><LoadingScreen message="Loading attention cases..." /></PageContainer>;
 
   return (
     <PageContainer>
@@ -89,7 +103,7 @@ export function AttentionView() {
                 return (
                   <button
                     key={c.id}
-                    onClick={() => setSelected(c)}
+                    onClick={() => setSelectedId(c.id)}
                     className={cn(
                       "w-full rounded-xl border bg-card p-3.5 text-left transition-all hover:shadow-sm",
                       selected?.id === c.id ? "border-primary ring-2 ring-primary/20" : "border-border"
@@ -197,24 +211,20 @@ export function AttentionView() {
               </SectionCard>
 
               {/* Order context */}
-              {selectedOrder && (
-                <SectionCard title="Order Context" description={`${selectedOrder.orderNumber} · ${selectedOrder.city}`}>
-                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {selected && (
+                <SectionCard title="Order Context" description={`${selected.orderNumber} · ${selected.city}`}>
+                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
                     <div className="rounded-lg border border-border bg-muted/20 p-3">
-                      <p className="text-xs text-muted-foreground">COD Amount</p>
-                      <p className="text-sm font-bold">Rs {selectedOrder.codAmount.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">Order Number</p>
+                      <p className="text-sm font-bold">{selected.orderNumber}</p>
                     </div>
                     <div className="rounded-lg border border-border bg-muted/20 p-3">
-                      <p className="text-xs text-muted-foreground">Courier</p>
-                      <p className="mt-0.5">{selectedOrder.courier && <CourierTag courier={selectedOrder.courier} />}</p>
+                      <p className="text-xs text-muted-foreground">Customer</p>
+                      <p className="text-sm font-semibold">{selected.customerName}</p>
                     </div>
                     <div className="rounded-lg border border-border bg-muted/20 p-3">
-                      <p className="text-xs text-muted-foreground">Tracking</p>
-                      <p className="font-mono text-xs font-semibold">{selectedOrder.trackingNumber}</p>
-                    </div>
-                    <div className="rounded-lg border border-border bg-muted/20 p-3">
-                      <p className="text-xs text-muted-foreground">Phone</p>
-                      <p className="text-sm font-semibold">{selectedOrder.customerPhone}</p>
+                      <p className="text-xs text-muted-foreground">City</p>
+                      <p className="text-sm font-semibold">{selected.city}</p>
                     </div>
                   </div>
                 </SectionCard>

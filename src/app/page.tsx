@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sidebar } from "@/components/shipops/sidebar";
 import { Topbar } from "@/components/shipops/topbar";
 import { AuthScreen } from "@/components/shipops/auth-screen";
+import { Onboarding } from "@/components/shipops/onboarding";
 import { OrderDrawer } from "@/components/shipops/order-drawer";
 import { DashboardView } from "@/components/shipops/views/dashboard";
 import { UnconfirmedView } from "@/components/shipops/views/unconfirmed";
@@ -29,6 +30,7 @@ interface SessionUser {
 
 export default function Home() {
   const [authed, setAuthed] = useState(false);
+  const [onboarding, setOnboarding] = useState(false);
   const [user, setUser] = useState<SessionUser | null>(null);
   const [orgName, setOrgName] = useState("Demo Store PK");
   const [view, setView] = useState<ViewKey>("dashboard");
@@ -41,16 +43,32 @@ export default function Home() {
     setRole(r as UserRole);
     setOrgName(org);
     setAuthed(true);
+    // Show onboarding only for newly created accounts (signup), not login
+    // For demo: show onboarding when the org name is NOT "Demo Store PK"
+    if (org !== "Demo Store PK") {
+      setOnboarding(true);
+    }
   };
 
   const handleLogout = () => {
     setAuthed(false);
     setUser(null);
+    setOnboarding(false);
     setView("dashboard");
   };
 
   if (!authed) {
     return <AuthScreen onSuccess={handleAuthSuccess} onSwitchMode={() => {}} />;
+  }
+
+  if (onboarding) {
+    return (
+      <Onboarding
+        orgName={orgName}
+        onComplete={() => setOnboarding(false)}
+        onSkip={() => setOnboarding(false)}
+      />
+    );
   }
 
   const renderView = () => {

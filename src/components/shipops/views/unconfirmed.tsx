@@ -1,26 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { MessageCircle, Phone, Mail, Check, X, Eye, MapPin, Package, AlertTriangle, Sparkles, Clock, Filter } from "lucide-react";
-import { orders } from "@/lib/mock-data";
 import { formatPKRFull, formatTimeAgo, riskLevelConfig } from "@/lib/format";
 import { PageContainer, RiskBadge, RiskMeter, SectionCard, EmptyState } from "../shared";
+import { LoadingScreen } from "../loading";
+import { useApi, apiPost } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { Order } from "@/lib/types";
 
 export function UnconfirmedView() {
   const { toast } = useToast();
-  const unconfirmed = orders.filter((o) => o.status === "UNCONFIRMED");
-  const [selected, setSelected] = useState<Order | null>(unconfirmed[0] || null);
+  const { data, loading, refetch } = useApi<{ orders: Order[]; total: number }>("/api/v1/orders?status=UNCONFIRMED");
+  const unconfirmed = data?.orders || [];
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"ALL" | "HIGH" | "MEDIUM" | "LOW">("ALL");
   const [confirming, setConfirming] = useState<Set<string>>(new Set());
 
+  const selected = useMemo(() => {
+    if (unconfirmed.length === 0) return null;
+    return unconfirmed.find((o) => o.id === selectedId) || unconfirmed[0];
+  }, [unconfirmed, selectedId]);
+
   const filtered = unconfirmed.filter((o) => filter === "ALL" || o.riskLevel === filter);
 
-  const handleAction = (order: Order, action: "whatsapp" | "call" | "sms" | "confirm" | "cancel") => {
-    if (action === "confirm" || action === "cancel") {
-      setConfirming((prev) => new Set(prev).add(order.id));
+  const handleAction = async (order: Order, action: "whatsapp" | "call" | "sms" | "confirm" | "cancel") => {
+    if (action === "confirm") {
+      const res = await apiPost(`/api/v1/orders/${order.id}/confirm`, { method: "WHATSAPP" });
+      if (res.success) {
+        setConfirming((prev) => new Set(prev).add(order.id));
+        toast({ title: `Order ${order.orderNumber} confirmed ✓`, description: "Moved to Confirmed stage" });
+        refetch();
+      }
+      return;
+    }
+    if (action === "cancel") {
+      const res = await apiPost(`/api/v1/orders/${order.id}/cancel`, { reason: "Cancelled by operator" });
+      if (res.success) {
+        setConfirming((prev) => new Set(prev).add(order.id));
+        toast({ title: `Order ${order.orderNumber} cancelled` });
+        refetch();
+      }
+      return;
     }
     const messages = {
       whatsapp: `WhatsApp confirmation sent to ${order.customerName}`,
@@ -31,6 +53,8 @@ export function UnconfirmedView() {
     };
     toast({ title: messages[action], description: action === "confirm" ? "Moved to Confirmed stage" : undefined });
   };
+
+  if (loading) return <PageContainer><LoadingScreen message="Loading unconfirmed orders..." /></PageContainer>;
 
   return (
     <PageContainer>
@@ -62,7 +86,7 @@ export function UnconfirmedView() {
               filtered.map((o) => (
                 <button
                   key={o.id}
-                  onClick={() => setSelected(o)}
+                  onClick={() => setSelectedId(o.id)}
                   className={cn(
                     "w-full rounded-xl border bg-card p-3.5 text-left transition-all hover:shadow-sm",
                     selected?.id === o.id ? "border-primary ring-2 ring-primary/20" : "border-border"

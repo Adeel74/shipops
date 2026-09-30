@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Zap, Plus, Play, Pause, CheckCircle2, Clock, TrendingUp, MoreHorizontal, Sparkles, Pencil, Trash2 } from "lucide-react";
-import { automationRules } from "@/lib/mock-data";
 import { formatTimeAgo } from "@/lib/format";
 import { PageContainer, SectionCard, EmptyState } from "../shared";
+import { LoadingScreen } from "../loading";
+import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import type { AutomationRule } from "@/lib/types";
 
 const triggerColors: Record<string, string> = {
   ORDER_CREATED: "bg-amber-100 text-amber-700",
@@ -22,11 +24,17 @@ const triggerColors: Record<string, string> = {
 
 export function AutomationView() {
   const { toast } = useToast();
-  const [rules, setRules] = useState(automationRules);
+  const { data, loading } = useApi<{ rules: AutomationRule[] }>("/api/v1/automation");
+  const [localOverrides, setLocalOverrides] = useState<Record<string, boolean>>({});
+
+  const rules = useMemo(() => {
+    const base = data?.rules || [];
+    return base.map((r) => localOverrides[r.id] !== undefined ? { ...r, enabled: localOverrides[r.id] } : r);
+  }, [data, localOverrides]);
 
   const toggleRule = (id: string) => {
-    setRules((prev) => prev.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r)));
     const rule = rules.find((r) => r.id === id);
+    setLocalOverrides((prev) => ({ ...prev, [id]: !rule?.enabled }));
     toast({
       title: rule?.enabled ? "Rule paused" : "Rule activated",
       description: rule?.name,
@@ -35,6 +43,8 @@ export function AutomationView() {
 
   const totalRuns = rules.reduce((s, r) => s + r.runsLast30Days, 0);
   const enabledCount = rules.filter((r) => r.enabled).length;
+
+  if (loading) return <PageContainer><LoadingScreen message="Loading automation rules..." /></PageContainer>;
 
   return (
     <PageContainer className="space-y-5">

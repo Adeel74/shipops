@@ -1,12 +1,13 @@
 "use client";
 
 import { UserPlus, MoreHorizontal, Mail, Clock, Shield, Crown, Pencil, Trash2 } from "lucide-react";
-import { teamMembers } from "@/lib/mock-data";
 import { userRoleConfig, formatTimeAgo } from "@/lib/format";
 import { PageContainer, SectionCard } from "../shared";
+import { LoadingScreen } from "../loading";
+import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import type { UserRole } from "@/lib/types";
+import type { UserRole, TeamMember } from "@/lib/types";
 
 const rolePermissions: Record<UserRole, string[]> = {
   OWNER: ["Everything", "Billing", "Team management", "Ownership transfer"],
@@ -18,6 +19,11 @@ const rolePermissions: Record<UserRole, string[]> = {
 
 export function TeamView() {
   const { toast } = useToast();
+  const { data, loading } = useApi<{ members: TeamMember[] }>("/api/v1/team");
+
+  if (loading || !data) return <PageContainer><LoadingScreen message="Loading team members..." /></PageContainer>;
+
+  const teamMembers = data.members;
 
   return (
     <PageContainer className="space-y-5">

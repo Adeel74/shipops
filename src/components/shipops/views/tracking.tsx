@@ -1,22 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Truck, MapPin, Package, Clock, CheckCircle2, AlertTriangle, ExternalLink, Copy } from "lucide-react";
-import { orders } from "@/lib/mock-data";
 import { formatPKRFull, formatDateTime, formatTimeAgo } from "@/lib/format";
 import { PageContainer, SectionCard, EmptyState, StatusBadge, CourierTag } from "../shared";
+import { LoadingScreen } from "../loading";
+import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import type { Order } from "@/lib/types";
 
 export function TrackingView() {
   const { toast } = useToast();
-  const inTransit = orders.filter((o) => o.status === "IN_TRANSIT" || o.status === "OUT_FOR_DELIVERY" || o.status === "SHIPMENT_CREATED");
-  const [selected, setSelected] = useState<Order | null>(inTransit[0] || null);
+  // Fetch all orders and filter for transit statuses
+  const { data, loading } = useApi<{ orders: Order[]; total: number }>("/api/v1/orders?status=ALL");
+  const allOrders = data?.orders || [];
+  const inTransit = allOrders.filter((o) => o.status === "IN_TRANSIT" || o.status === "OUT_FOR_DELIVERY" || o.status === "SHIPMENT_CREATED");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const selected = useMemo(() => {
+    if (inTransit.length === 0) return null;
+    return inTransit.find((o) => o.id === selectedId) || inTransit[0];
+  }, [inTransit, selectedId]);
 
   const copyTracking = (num: string) => {
     toast({ title: "Tracking number copied", description: num });
   };
+
+  if (loading) return <PageContainer><LoadingScreen message="Loading shipments..." /></PageContainer>;
 
   return (
     <PageContainer>
@@ -31,7 +42,7 @@ export function TrackingView() {
               inTransit.map((o) => (
                 <button
                   key={o.id}
-                  onClick={() => setSelected(o)}
+                  onClick={() => setSelectedId(o.id)}
                   className={cn(
                     "w-full rounded-xl border bg-card p-3.5 text-left transition-all hover:shadow-sm",
                     selected?.id === o.id ? "border-primary ring-2 ring-primary/20" : "border-border"

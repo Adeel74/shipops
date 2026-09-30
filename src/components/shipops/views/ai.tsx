@@ -1,15 +1,48 @@
 "use client";
 
 import { Sparkles, AlertTriangle, TrendingUp, TrendingDown, Bot, Check, ArrowRight, Zap, Brain, Target, Lightbulb } from "lucide-react";
-import { aiInsights, orders } from "@/lib/mock-data";
 import { formatPKRFull } from "@/lib/format";
 import { PageContainer, SectionCard, RiskBadge } from "../shared";
+import { LoadingScreen } from "../loading";
+import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
+interface AiInsightsData {
+  dailySummary: {
+    date: string;
+    totalOrders: number;
+    confirmed: number;
+    pendingConfirmation: number;
+    attentionCases: number;
+    rtoPredicted: number;
+    revenueAtRisk: number;
+  };
+  predictions: {
+    id: string;
+    orderId: string;
+    customerName: string;
+    riskScore: number;
+    riskLevel: "LOW" | "MEDIUM" | "HIGH";
+    prediction: string;
+    recommendedAction: string;
+    impact: string;
+  }[];
+  automationsSuggested: {
+    id: string;
+    title: string;
+    reason: string;
+    impact: string;
+  }[];
+}
+
 export function AiView() {
   const { toast } = useToast();
-  const s = aiInsights.dailySummary;
+  const { data, loading } = useApi<AiInsightsData>("/api/v1/ai/insights");
+
+  if (loading || !data) return <PageContainer><LoadingScreen message="AI analyzing your operations..." /></PageContainer>;
+
+  const s = data.dailySummary;
 
   return (
     <PageContainer className="space-y-5">
@@ -56,7 +89,7 @@ export function AiView() {
         action={<Sparkles className="h-4 w-4 text-violet-500" />}
       >
         <div className="space-y-3">
-          {aiInsights.predictions.map((p) => (
+          {data.predictions.map((p) => (
             <div key={p.id} className={cn(
               "rounded-xl border p-4",
               p.riskLevel === "HIGH" ? "border-red-200 bg-red-50/40" : p.riskLevel === "MEDIUM" ? "border-amber-200 bg-amber-50/40" : "border-emerald-200 bg-emerald-50/40"
@@ -146,7 +179,7 @@ export function AiView() {
       {/* Suggested automations */}
       <SectionCard title="AI-Suggested Optimizations" description="Patterns detected that could improve your operations" action={<Target className="h-4 w-4 text-violet-500" />}>
         <div className="space-y-3">
-          {aiInsights.automationsSuggested.map((sug) => (
+          {data.automationsSuggested.map((sug) => (
             <div key={sug.id} className="flex flex-wrap items-start gap-3 rounded-lg border border-violet-200 bg-violet-50 p-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet-500 text-white">
                 <Zap className="h-4 w-4" />

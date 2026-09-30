@@ -1,29 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Truck, CheckCircle2, MapPin, Package, Phone, MessageCircle, ArrowRight, Store } from "lucide-react";
-import { orders, courierIntegrations } from "@/lib/mock-data";
 import { formatPKRFull, formatTimeAgo } from "@/lib/format";
 import { PageContainer, SectionCard, EmptyState, CourierTag } from "../shared";
+import { LoadingScreen } from "../loading";
+import { useApi, apiPost } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import type { Order, CourierProvider } from "@/lib/types";
+import type { Order, CourierProvider, CourierIntegration } from "@/lib/types";
 
 export function ConfirmedView() {
   const { toast } = useToast();
-  const confirmed = orders.filter((o) => o.status === "CONFIRMED");
-  const [selected, setSelected] = useState<Order | null>(confirmed[0] || null);
+  const { data: orderData, loading: orderLoading, refetch } = useApi<{ orders: Order[]; total: number }>("/api/v1/orders?status=CONFIRMED");
+  const { data: courierData } = useApi<{ couriers: CourierIntegration[] }>("/api/v1/couriers");
+  const confirmed = orderData?.orders || [];
+  const courierIntegrations = (courierData?.couriers || []).filter((c) => c.status === "CONNECTED");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dispatching, setDispatching] = useState(false);
 
-  const handleCreateShipment = (order: Order, courier: CourierProvider) => {
+  const selected = useMemo(() => {
+    if (confirmed.length === 0) return null;
+    return confirmed.find((o) => o.id === selectedId) || confirmed[0];
+  }, [confirmed, selectedId]);
+
+  const handleCreateShipment = async (order: Order, courier: CourierProvider) => {
     setDispatching(true);
-    setTimeout(() => {
-      setDispatching(false);
+    const courierAcct = courierIntegrations.find((c) => c.provider === courier);
+    if (!courierAcct) { setDispatching(false); return; }
+    const res = await apiPost(`/api/v1/orders/${order.id}/create-shipment`, { courierAccountId: courierAcct.id });
+    setDispatching(false);
+    if (res.success) {
       toast({
         title: `Shipment created with ${courier}`,
-        description: `Order ${order.orderNumber} → ${courier}. Tracking number will appear shortly.`,
+        description: `Order ${order.orderNumber} → ${courier}. Tracking: ${res.data?.trackingNumber}`,
       });
-    }, 800);
+      refetch();
+    }
   };
 
   const checklist = [
@@ -31,6 +44,8 @@ export function ConfirmedView() {
     { label: "Address verified", done: true },
     { label: "Ready for courier", done: true },
   ];
+
+  if (orderLoading) return <PageContainer><LoadingScreen message="Loading confirmed orders..." /></PageContainer>;
 
   return (
     <PageContainer>
@@ -45,7 +60,7 @@ export function ConfirmedView() {
               confirmed.map((o) => (
                 <button
                   key={o.id}
-                  onClick={() => setSelected(o)}
+                  onClick={() => setSelectedId(o.id)}
                   className={cn(
                     "w-full rounded-xl border bg-card p-3.5 text-left transition-all hover:shadow-sm",
                     selected?.id === o.id ? "border-primary ring-2 ring-primary/20" : "border-border"

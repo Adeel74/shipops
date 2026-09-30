@@ -1,17 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Users, MapPin, Phone, Mail, Package, TrendingUp, TrendingDown, Search, Sparkles, AlertTriangle, MessageCircle } from "lucide-react";
-import { customers, orders } from "@/lib/mock-data";
+import { orders as mockOrders } from "@/lib/mock-data";
 import { formatPKRFull, formatTimeAgo, riskLevelConfig } from "@/lib/format";
 import { PageContainer, SectionCard, EmptyState, RiskBadge, RiskMeter, StatusBadge, CourierTag } from "../shared";
+import { LoadingScreen } from "../loading";
+import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import type { Customer } from "@/lib/types";
 
 export function CustomersView() {
-  const [selected, setSelected] = useState<Customer | null>(customers[0] || null);
+  const { data, loading } = useApi<{ customers: Customer[] }>("/api/v1/customers");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [riskFilter, setRiskFilter] = useState<"ALL" | "HIGH" | "MEDIUM" | "LOW">("ALL");
+
+  const customers = data?.customers || [];
+
+  const selected = useMemo(() => {
+    if (customers.length === 0) return null;
+    return customers.find((c) => c.id === selectedId) || customers[0];
+  }, [customers, selectedId]);
 
   const filtered = customers.filter((c) => {
     const matchesSearch = !search || `${c.firstName} ${c.lastName}`.toLowerCase().includes(search.toLowerCase()) || c.phone.includes(search) || c.city.toLowerCase().includes(search.toLowerCase());
@@ -19,9 +29,11 @@ export function CustomersView() {
     return matchesSearch && matchesRisk;
   });
 
-  const customerOrders = selected ? orders.filter((o) => o.customerId === selected.id) : [];
+  const customerOrders = selected ? mockOrders.filter((o) => o.customerId === selected.id) : [];
   const deliveryRate = selected ? Math.round((selected.deliveredOrders / selected.totalOrders) * 100) : 0;
   const rtoRate = selected ? Math.round((selected.returnedOrders / selected.totalOrders) * 100) : 0;
+
+  if (loading) return <PageContainer><LoadingScreen message="Loading customers..." /></PageContainer>;
 
   return (
     <PageContainer>
@@ -61,7 +73,7 @@ export function CustomersView() {
               filtered.map((c) => (
                 <button
                   key={c.id}
-                  onClick={() => setSelected(c)}
+                  onClick={() => setSelectedId(c.id)}
                   className={cn(
                     "w-full rounded-xl border bg-card p-3.5 text-left transition-all hover:shadow-sm",
                     selected?.id === c.id ? "border-primary ring-2 ring-primary/20" : "border-border"

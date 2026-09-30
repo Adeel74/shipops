@@ -1,11 +1,33 @@
 "use client";
 
 import { TrendingUp, TrendingDown, Truck, CheckCircle2, Wallet, Banknote, Receipt, Percent, Clock, ArrowUpRight, ArrowDownRight, Package, AlertTriangle, Undo2, Inbox } from "lucide-react";
-import { dashboardMetrics, deliveryTrend, courierPerformance, cityDistribution, orders, attentionCases } from "@/lib/mock-data";
+import { deliveryTrend, courierPerformance, cityDistribution, orders as mockOrders, attentionCases as mockAttention } from "@/lib/mock-data";
 import { formatPKR, formatPKRFull } from "@/lib/format";
 import { PageContainer, SectionCard, StatusBadge, CourierTag } from "../shared";
+import { LoadingScreen, SkeletonCard } from "../loading";
+import { useApi } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import type { ViewKey, Order } from "@/lib/types";
+
+interface DashboardData {
+  inTransit: number;
+  delivered: number;
+  deliveryRate: number;
+  inYourBank: number;
+  courierOwes: number;
+  shippingCost: number;
+  taxWithheld: number;
+  todaysOrders: number;
+  pendingConfirmation: number;
+  confirmed: number;
+  rto: number;
+  rtoRate: number;
+  codCollected: number;
+  courierPayable: number;
+  avgDeliveryTime: number;
+  attentionCases: number;
+  activeShipments: number;
+}
 
 interface DashboardViewProps {
   onNavigate: (v: ViewKey) => void;
@@ -13,8 +35,19 @@ interface DashboardViewProps {
 }
 
 export function DashboardView({ onNavigate, onOpenOrder }: DashboardViewProps) {
-  const m = dashboardMetrics;
+  const { data: m, loading } = useApi<DashboardData>("/api/v1/dashboard");
   const maxDispatched = Math.max(...deliveryTrend.map((d) => d.dispatched));
+
+  if (loading || !m) {
+    return (
+      <PageContainer className="space-y-5">
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 lg:gap-4 xl:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+        </div>
+        <LoadingScreen message="Loading dashboard..." />
+      </PageContainer>
+    );
+  }
 
   const kpis = [
     { label: "In Transit", value: m.inTransit.toString(), sub: "Active shipments", icon: Truck, color: "text-indigo-600", bg: "bg-indigo-50", trend: "+12", trendUp: true },
@@ -213,7 +246,7 @@ export function DashboardView({ onNavigate, onOpenOrder }: DashboardViewProps) {
                 <AlertTriangle className="h-4 w-4" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold">{attentionCases.filter((c) => c.status === "OPEN").length} attention cases</p>
+                <p className="text-sm font-semibold">{m.attentionCases} attention cases</p>
                 <p className="text-[11px] text-muted-foreground">1 urgent · 2 high</p>
               </div>
               <ArrowUpRight className="h-4 w-4 text-red-600" />
@@ -269,7 +302,7 @@ export function DashboardView({ onNavigate, onOpenOrder }: DashboardViewProps) {
               </tr>
             </thead>
             <tbody>
-              {orders.slice(0, 8).map((o) => (
+              {mockOrders.slice(0, 8).map((o) => (
                 <tr
                   key={o.id}
                   onClick={() => onOpenOrder?.(o)}
