@@ -1,0 +1,2002 @@
+     1→Bilkul. Video ko detail mein dekhne ke baad ab product ka actual workflow aur zyada clear hai. Yeh sirf Shopify order-management dashboard nahi hai; iska strongest concept COD order verification + courier operations + exception handling + evidence-based RTO management hai.
+     2→STEP 2 — Complete Product Blueprint
+     3→Main is product ko temporary naam ShipOps de raha hoon. Baad mein hum iska unique brand name finalize kar sakte hain.
+     4→1. Product ka main purpose
+     5→Shopify Order
+     6→     ↓
+     7→Unconfirmed
+     8→     ↓
+     9→Customer Confirmation
+    10→     ↓
+    11→Confirmed
+    12→     ↓
+    13→Courier / Tracking
+    14→     ↓
+    15→Delivered
+    16→     ↓
+    17→        ┌───────────────┐
+    18→        │ Problem?      │
+    19→        └───────┬───────┘
+    20→                ↓
+    21→         Needs Attention
+    22→                ↓
+    23→            Returns/RTO
+    24→                ↓
+    25→       Evidence + Recovery
+    26→Video mein Unconfirmed → Confirmed → Tracking → Needs Attention → Returns ka progression clearly shown hai.
+    27→
+    28→2. Dashboard
+    29→Dashboard ka purpose merchant ko ek glance mein business ki current position dikhana hai.
+    30→Main cards
+    31→┌────────────────┐ ┌────────────────┐
+    32→│ IN TRANSIT     │ │ DELIVERED      │
+    33→│     100        │ │    2,356       │
+    34→│ Active Ship.   │ │ 79% Delivery   │
+    35→└────────────────┘ └────────────────┘
+    36→
+    37→┌────────────────┐ ┌────────────────┐
+    38→│ IN YOUR BANK   │ │ COURIER OWES   │
+    39→│ Rs 8.2M        │ │ Rs 0           │
+    40→└────────────────┘ └────────────────┘
+    41→
+    42→┌────────────────┐ ┌────────────────┐
+    43→│ SHIPPING COST  │ │ TAX WITHHELD   │
+    44→│ Rs XXX         │ │ Rs XXX         │
+    45→└────────────────┘ └────────────────┘
+    46→Lekin hum isko aur useful bana sakte hain:
+    47→Today's Orders
+    48→Pending Confirmation
+    49→Confirmed
+    50→In Transit
+    51→Delivered
+    52→RTO
+    53→RTO %
+    54→COD Collected
+    55→Courier Payable
+    56→Courier Receivable
+    57→Delivery Rate
+    58→Average Delivery Time
+    59→
+    60→3. Unconfirmed Orders
+    61→Video ka yeh screen particularly important hai.
+    62→Example:
+    63→UNCONFIRMED
+    64→
+    65→23 TO CONFIRM
+    66→
+    67→Ayesha Khan       #1043
+    68→Lahore
+    69→COD
+    70→Auto-call: Pressed 1
+    71→Confirmed - Call
+    72→
+    73→Bilal Ahmed       #1044
+    74→Karachi
+    75→COD
+    76→Confirmed - WhatsApp
+    77→
+    78→Sana Tariq        #1045
+    79→Multan
+    80→COD
+    81→Is screen par system automatically show kare:
+    82→Customer
+    83→Name
+    84→Phone
+    85→City
+    86→Address
+    87→Order
+    88→Order ID
+    89→Products
+    90→COD amount
+    91→Confirmation
+    92→WhatsApp
+    93→Call
+    94→SMS
+    95→Manual
+    96→Buttons
+    97→[WhatsApp]
+    98→[Call]
+    99→[Confirm]
+   100→[Cancel]
+   101→[View Order]
+   102→
+   103→4. WhatsApp Automation
+   104→Yeh product ka major competitive component ho sakta hai.
+   105→Order Shopify se aaya:
+   106→NEW ORDER
+   107→     ↓
+   108→WhatsApp message
+   109→     ↓
+   110→"Please confirm your order"
+   111→     ↓
+   112→[CONFIRM] [CANCEL]
+   113→Customer:
+   114→CONFIRM
+   115→↓
+   116→System automatically:
+   117→Order Status = Confirmed
+   118→Aur merchant ko manually kuch nahi karna.
+   119→Follow-up automation
+   120→Agar customer response nahi karta:
+   121→After 30 min
+   122→      ↓
+   123→Reminder #1
+   124→
+   125→After 4 hours
+   126→      ↓
+   127→Reminder #2
+   128→
+   129→Next day
+   130→      ↓
+   131→Call / Manual review
+   132→
+   133→5. Confirmed Orders
+   134→Confirmation ke baad order automatically next stage mein chala jaye.
+   135→CONFIRMED
+   136→
+   137→Ayesha Khan
+   138→Order #1043
+   139→Rs 4,500 COD
+   140→
+   141→✓ Customer confirmed
+   142→✓ Address verified
+   143→✓ Ready for courier
+   144→Button:
+   145→Create Shipment
+   146→
+   147→6. Courier Integration
+   148→Yahan product SaaS banne lagta hai.
+   149→Merchant apne courier accounts connect kare:
+   150→Courier Integrations
+   151→
+   152→✓ TCS
+   153→✓ Leopards
+   154→✓ M&P
+   155→✓ Trax
+   156→✓ PostEx
+   157→✓ Call Courier
+   158→✓ Rider
+   159→Important: Pakistan ke liye hum architecture ko courier-agnostic rakhenge, taake kal ko new courier API add karna easy ho.
+   160→
+   161→7. Tracking
+   162→Courier se tracking events webhook/API ke through aayenge.
+   163→Example:
+   164→Order #1053
+   165→
+   166→✓ Order Confirmed
+   167→✓ Shipment Created
+   168→✓ Picked Up
+   169→✓ In Transit
+   170→⚠ Delivery Attempt
+   171→⚠ Customer Unavailable
+   172→Merchant ko courier website manually open karne ki zarurat na ho.
+   173→
+   174→8. "Needs Attention" — Product ka strongest module
+   175→Video mein yeh section especially valuable hai.
+   176→Example:
+   177→Hira Saleem
+   178→Courier cannot find the house.
+   179→
+   180→BAD ADDRESS
+   181→Day 1
+   182→Usman Raza
+   183→Rider marked not available.
+   184→
+   185→CONSIGNEE NOT AVAILABLE
+   186→3 attempts left
+   187→Maham Ali
+   188→Courier says customer refused.
+   189→
+   190→REFUSED TO ACCEPT
+   191→Overdue 19h
+   192→System automatically problematic orders ko yahan move karega.
+   193→
+   194→9. AI-powered Needs Attention
+   195→Yahan hum video se ek step aage ja sakte hain.
+   196→AI events ko analyze kare:
+   197→Courier Event
+   198→      +
+   199→WhatsApp Conversation
+   200→      +
+   201→Customer History
+   202→      +
+   203→Address
+   204→      ↓
+   205→   AI ENGINE
+   206→      ↓
+   207→Problem Classification
+   208→AI identify kare:
+   209→Example
+   210→Bad Address
+   211→AI:
+   212→Customer address incomplete hai. Customer ko WhatsApp par address confirmation bheji jaye.
+   213→Customer Refused
+   214→AI:
+   215→Customer previously confirmed order but courier report indicates refusal. Recovery message recommended.
+   216→Customer Unavailable
+   217→AI:
+   218→Delivery attempt failed. Customer ko preferred delivery time poochhein.
+   219→
+   220→10. Returns / RTO
+   221→Video ka sabse interesting part yahan hai.
+   222→Order return ho raha hai:
+   223→RETURN
+   224→
+   225→#1053
+   226→Multan
+   227→
+   228→"It is on its way back."
+   229→
+   230→Reason:
+   231→Refused to accept
+   232→Aur neeche complete timeline:
+   233→9:01 AM
+   234→Courier
+   235→Out for delivery
+   236→
+   237→2:01 PM
+   238→Courier
+   239→Receiver refused to accept
+   240→Code RD
+   241→
+   242→3:40 PM
+   243→ShipOps Automation
+   244→Messaged customer
+   245→
+   246→3:44 PM
+   247→Customer
+   248→"Rider aaya hi nahi"
+   249→Evidence
+   250→Yahan:
+   251→+ Evidence
+   252→ka concept bahut powerful hai.
+   253→System evidence collect kare:
+   254→Courier event
+   255→WhatsApp messages
+   256→Call logs
+   257→Customer responses
+   258→Timestamps
+   259→Order status changes
+   260→Agent actions
+   261→Is se merchant ke paas dispute/recovery ke liye proper timeline hogi.
+   262→
+   263→11. Customer Profile
+   264→Main ek additional screen recommend karta hoon:
+   265→CUSTOMER
+   266→
+   267→Ayesha Khan
+   268→Lahore
+   269→03XX-XXXXXXX
+   270→
+   271→Orders: 12
+   272→Delivered: 9
+   273→Returned: 3
+   274→
+   275→Delivery Rate: 75%
+   276→RTO Rate: 25%
+   277→
+   278→Last Order: Rs 4,500
+   279→Customer history
+   280→#1043   Delivered
+   281→#1008   Delivered
+   282→#982    Returned
+   283→#901    Delivered
+   284→Future mein:
+   285→Customer Risk Score
+   286→bhi add kar sakte hain.
+   287→
+   288→12. AI Risk Engine
+   289→Yeh SaaS ka premium feature ho sakta hai.
+   290→Har COD order ko AI analyze kare:
+   291→Order #1053
+   292→
+   293→RTO Risk
+   294→████████░░ 78%
+   295→
+   296→Reasons:
+   297→• Previous RTO
+   298→• Address incomplete
+   299→• Customer hasn't replied
+   300→• High COD amount
+   301→System automatically recommend kare:
+   302→"Verify customer before dispatch."
+   303→
+   304→13. Database Architecture
+   305→Main MVP ke liye PostgreSQL recommend karunga.
+   306→Core tables:
+   307→users
+   308→organizations
+   309→team_members
+   310→
+   311→stores
+   312→shopify_connections
+   313→
+   314→customers
+   315→customer_addresses
+   316→
+   317→products
+   318→orders
+   319→order_items
+   320→
+   321→order_status_history
+   322→
+   323→whatsapp_accounts
+   324→whatsapp_messages
+   325→
+   326→couriers
+   327→courier_accounts
+   328→shipments
+   329→tracking_events
+   330→
+   331→attention_cases
+   332→
+   333→returns
+   334→return_reasons
+   335→
+   336→evidence
+   337→automation_rules
+   338→automation_logs
+   339→
+   340→notifications
+   341→
+   342→subscriptions
+   343→payments
+   344→Multi-tenant architecture
+   345→Bahut important:
+   346→                   SaaS
+   347→                     │
+   348→        ┌────────────┼────────────┐
+   349→        ↓            ↓            ↓
+   350→     Store A       Store B      Store C
+   351→        │            │            │
+   352→     Orders        Orders       Orders
+   353→Ek merchant ka data doosre merchant ko kabhi expose nahi hona chahiye.
+   354→
+   355→14. Recommended Tech Stack
+   356→Agar aap khud AI ke saath build karna chahte hain to main yeh stack choose karunga:
+   357→Frontend
+   358→Next.js + TypeScript
+   359→UI
+   360→Tailwind CSS + shadcn/ui
+   361→Backend
+   362→Next.js API / NestJS
+   363→MVP mein Next.js backend se start karna simpler rahega.
+   364→Database
+   365→PostgreSQL
+   366→ORM
+   367→Prisma
+   368→Authentication
+   369→Clerk ya Auth.js
+   370→Background jobs
+   371→Redis + BullMQ
+   372→Automation
+   373→n8n optional
+   374→WhatsApp
+   375→WhatsApp Business Platform / Cloud API
+   376→Shopify
+   377→Shopify Admin API + Webhooks
+   378→Hosting
+   379→Initially:
+   380→Vercel
+   381→+
+   382→PostgreSQL
+   383→+
+   384→Redis
+   385→+
+   386→Object Storage
+   387→
+   388→15. AI Architecture
+   389→AI ko directly database par full control nahi dena.
+   390→Better architecture:
+   391→               AI AGENT
+   392→                   │
+   393→            AI Orchestrator
+   394→                   │
+   395→        ┌──────────┼──────────┐
+   396→        ↓          ↓          ↓
+   397→     Orders     Customer    Courier
+   398→       API         API         API
+   399→        │          │           │
+   400→        └──────────┼───────────┘
+   401→                   ↓
+   402→              Action Layer
+   403→                   ↓
+   404→        WhatsApp / Notification
+   405→AI ke paas predefined tools hon:
+   406→get_order()
+   407→get_customer()
+   408→get_tracking()
+   409→get_conversation()
+   410→create_attention_case()
+   411→send_whatsapp()
+   412→add_note()
+   413→Is approach se AI controlled aur auditable rahega.
+   414→
+   415→16. MVP mein kya banana hai?
+   416→Version 1 mein sab kuch mat banao.
+   417→Phase 1
+   418→Authentication
+   419→        ↓
+   420→Shopify Connect
+   421→        ↓
+   422→Orders Sync
+   423→        ↓
+   424→Dashboard
+   425→        ↓
+   426→Order Management
+   427→Phase 2
+   428→WhatsApp
+   429→     ↓
+   430→Confirmation
+   431→     ↓
+   432→Automated Follow-ups
+   433→Phase 3
+   434→Courier APIs
+   435→     ↓
+   436→Shipment
+   437→     ↓
+   438→Tracking
+   439→Phase 4
+   440→Needs Attention
+   441→     ↓
+   442→Rules Engine
+   443→     ↓
+   444→Returns/RTO
+   445→Phase 5
+   446→AI
+   447→ ↓
+   448→Risk Detection
+   449→ ↓
+   450→Recommendations
+   451→ ↓
+   452→Automated Actions
+   453→
+   454→17. Monetization
+   455→Isko SaaS subscription model mein rakha ja sakta hai.
+   456→Example structure:
+   457→Plan
+   458→Target
+   459→Starter
+   460→Small stores
+   461→Growth
+   462→Growing stores
+   463→Business
+   464→High-volume stores
+   465→Enterprise
+   466→Large operations
+   467→
+   468→Pricing orders/month + automation usage + WhatsApp usage ke combination par based ho sakti hai.
+   469→
+   470→18. Sabse important next step
+   471→Ab hum UI design par ja sakte hain.
+   472→Main next step mein aapke liye complete Figma-style screen blueprint bana sakta hoon:
+   473→01 Login
+   474→02 Signup
+   475→03 Onboarding
+   476→04 Connect Shopify
+   477→05 Dashboard
+   478→06 Unconfirmed
+   479→07 Confirmed
+   480→08 Tracking
+   481→09 Needs Attention
+   482→10 Returns
+   483→11 Order Details
+   484→12 Customer Profile
+   485→13 WhatsApp Inbox
+   486→14 Courier Management
+   487→15 Automation
+   488→16 Analytics
+   489→17 AI Insights
+   490→18 Billing
+   491→19 Team
+   492→20 Settings
+   493→Aur har screen ke liye exact layout, buttons, cards, sidebar, colors, tables, user actions aur navigation flow define karenge. Uske baad isi blueprint ko AI coding prompt mein convert karke actual SaaS build karna start kiya ja sakta hai.
+   494→STEP 4 — Database + API + Code Blueprint
+   495→Ab hum ShipOps MVP ko actual development level par define karte hain.
+   496→
+   497→1. Project Structure
+   498→Main Next.js + TypeScript + Prisma + PostgreSQL se start karne ki recommendation dunga.
+   499→shipops/
+   500→│
+   501→├── app/
+   502→│   ├── (auth)/
+   503→│   │   ├── login/
+   504→│   │   └── signup/
+   505→│   │
+   506→│   ├── dashboard/
+   507→│   ├── orders/
+   508→│   │   ├── page.tsx
+   509→│   │   └── [id]/
+   510→│   ├── customers/
+   511→│   ├── whatsapp/
+   512→│   ├── couriers/
+   513→│   ├── attention/
+   514→│   ├── returns/
+   515→│   ├── automation/
+   516→│   ├── analytics/
+   517→│   ├── ai/
+   518→│   └── settings/
+   519→│
+   520→├── api/
+   521→│   ├── orders/
+   522→│   ├── customers/
+   523→│   ├── whatsapp/
+   524→│   ├── couriers/
+   525→│   ├── shipments/
+   526→│   ├── automation/
+   527→│   ├── ai/
+   528→│   └── analytics/
+   529→│
+   530→├── components/
+   531→│   ├── dashboard/
+   532→│   ├── orders/
+   533→│   ├── customers/
+   534→│   ├── whatsapp/
+   535→│   ├── couriers/
+   536→│   └── ui/
+   537→│
+   538→├── lib/
+   539→│   ├── auth/
+   540→│   ├── db/
+   541→│   ├── shopify/
+   542→│   ├── whatsapp/
+   543→│   ├── courier/
+   544→│   ├── ai/
+   545→│   ├── automation/
+   546→│   └── encryption/
+   547→│
+   548→├── workers/
+   549→│   ├── order-sync.worker.ts
+   550→│   ├── whatsapp.worker.ts
+   551→│   ├── tracking.worker.ts
+   552→│   └── automation.worker.ts
+   553→│
+   554→├── prisma/
+   555→│   ├── schema.prisma
+   556→│   └── seed.ts
+   557→│
+   558→├── types/
+   559→│   ├── order.ts
+   560→│   ├── customer.ts
+   561→│   ├── shipment.ts
+   562→│   └── automation.ts
+   563→│
+   564→├── tests/
+   565→│
+   566→├── .env.example
+   567→├── package.json
+   568→└── README.md
+   569→
+   570→2. Core Database Schema
+   571→Yeh MVP ka main Prisma schema structure hai.
+   572→enum UserRole {
+   573→  OWNER
+   574→  ADMIN
+   575→  MANAGER
+   576→  OPERATOR
+   577→  VIEWER
+   578→}
+   579→
+   580→enum OrderStatus {
+   581→  UNCONFIRMED
+   582→  CONFIRMED
+   583→  SHIPMENT_CREATED
+   584→  IN_TRANSIT
+   585→  OUT_FOR_DELIVERY
+   586→  DELIVERED
+   587→  ATTENTION
+   588→  RETURNING
+   589→  RETURNED
+   590→  CANCELLED
+   591→}
+   592→
+   593→enum RiskLevel {
+   594→  LOW
+   595→  MEDIUM
+   596→  HIGH
+   597→}
+   598→
+   599→enum AttentionType {
+   600→  BAD_ADDRESS
+   601→  CUSTOMER_UNREACHABLE
+   602→  CUSTOMER_REFUSED
+   603→  FAILED_DELIVERY
+   604→  COURIER_DELAY
+   605→  HIGH_RTO_RISK
+   606→  PAYMENT_ISSUE
+   607→  DUPLICATE_ORDER
+   608→  OTHER
+   609→}
+   610→
+   611→enum AttentionStatus {
+   612→  OPEN
+   613→  IN_PROGRESS
+   614→  RESOLVED
+   615→  IGNORED
+   616→}
+   617→
+   618→enum MessageDirection {
+   619→  INBOUND
+   620→  OUTBOUND
+   621→}
+   622→
+   623→enum MessageStatus {
+   624→  QUEUED
+   625→  SENT
+   626→  DELIVERED
+   627→  READ
+   628→  FAILED
+   629→}
+   630→
+   631→model User {
+   632→  id          String   @id @default(cuid())
+   633→  name        String
+   634→  email       String   @unique
+   635→  createdAt   DateTime @default(now())
+   636→  updatedAt   DateTime @updatedAt
+   637→
+   638→  memberships OrganizationMember[]
+   639→  auditLogs    AuditLog[]
+   640→}
+   641→
+   642→model Organization {
+   643→  id          String   @id @default(cuid())
+   644→  name        String
+   645→  slug        String   @unique
+   646→  country     String?
+   647→  timezone    String   @default("Asia/Karachi")
+   648→  currency    String   @default("PKR")
+   649→  createdAt   DateTime @default(now())
+   650→  updatedAt   DateTime @updatedAt
+   651→
+   652→  members     OrganizationMember[]
+   653→  stores      Store[]
+   654→  customers   Customer[]
+   655→  products    Product[]
+   656→  orders      Order[]
+   657→  couriers    CourierAccount[]
+   658→  cases       AttentionCase[]
+   659→  automations AutomationRule[]
+   660→  auditLogs   AuditLog[]
+   661→}
+   662→
+   663→model OrganizationMember {
+   664→  id             String       @id @default(cuid())
+   665→  organizationId String
+   666→  userId         String
+   667→  role           UserRole
+   668→
+   669→  organization Organization @relation(
+   670→    fields: [organizationId],
+   671→    references: [id],
+   672→    onDelete: Cascade
+   673→  )
+   674→
+   675→  user User @relation(
+   676→    fields: [userId],
+   677→    references: [id],
+   678→    onDelete: Cascade
+   679→  )
+   680→
+   681→  @@unique([organizationId, userId])
+   682→}
+   683→
+   684→3. Store
+   685→model Store {
+   686→  id                  String   @id @default(cuid())
+   687→  organizationId      String
+   688→  platform            String
+   689→  name                String
+   690→  shopDomain          String   @unique
+   691→  shopifyStoreId      String?
+   692→  accessTokenEncrypted String?
+   693→  status              String   @default("ACTIVE")
+   694→
+   695→  organization Organization @relation(
+   696→    fields: [organizationId],
+   697→    references: [id],
+   698→    onDelete: Cascade
+   699→  )
+   700→
+   701→  orders Order[]
+   702→
+   703→  createdAt DateTime @default(now())
+   704→  updatedAt DateTime @updatedAt
+   705→}
+   706→
+   707→4. Customer
+   708→model Customer {
+   709→  id                String   @id @default(cuid())
+   710→  organizationId    String
+   711→  shopifyCustomerId String?
+   712→
+   713→  firstName String?
+   714→  lastName  String?
+   715→  email     String?
+   716→  phone     String?
+   717→
+   718→  totalOrders     Int @default(0)
+   719→  deliveredOrders Int @default(0)
+   720→  returnedOrders  Int @default(0)
+   721→
+   722→  riskScore Int       @default(0)
+   723→  riskLevel RiskLevel @default(LOW)
+   724→
+   725→  organization Organization @relation(
+   726→    fields: [organizationId],
+   727→    references: [id],
+   728→    onDelete: Cascade
+   729→  )
+   730→
+   731→  addresses Address[]
+   732→  orders    Order[]
+   733→  messages  WhatsAppMessage[]
+   734→
+   735→  createdAt DateTime @default(now())
+   736→  updatedAt DateTime @updatedAt
+   737→}
+   738→
+   739→5. Address
+   740→model Address {
+   741→  id         String @id @default(cuid())
+   742→  customerId String
+   743→
+   744→  name         String?
+   745→  phone        String?
+   746→  addressLine1 String?
+   747→  addressLine2 String?
+   748→  city         String?
+   749→  state        String?
+   750→  postalCode   String?
+   751→  country      String?
+   752→
+   753→  latitude  Float?
+   754→  longitude Float?
+   755→
+   756→  isDefault Boolean @default(false)
+   757→
+   758→  customer Customer @relation(
+   759→    fields: [customerId],
+   760→    references: [id],
+   761→    onDelete: Cascade
+   762→  )
+   763→}
+   764→
+   765→6. Products
+   766→model Product {
+   767→  id                String   @id @default(cuid())
+   768→  organizationId    String
+   769→  shopifyProductId  String?
+   770→  title             String
+   771→  sku               String?
+   772→  price             Decimal  @db.Decimal(12, 2)
+   773→  imageUrl          String?
+   774→  status            String   @default("ACTIVE")
+   775→
+   776→  organization Organization @relation(
+   777→    fields: [organizationId],
+   778→    references: [id],
+   779→    onDelete: Cascade
+   780→  )
+   781→
+   782→  orderItems OrderItem[]
+   783→
+   784→  createdAt DateTime @default(now())
+   785→  updatedAt DateTime @updatedAt
+   786→}
+   787→
+   788→7. Orders
+   789→model Order {
+   790→  id               String @id @default(cuid())
+   791→  organizationId   String
+   792→  storeId          String
+   793→  customerId       String
+   794→
+   795→  shopifyOrderId String
+   796→  orderNumber     String
+   797→
+   798→  paymentMethod String?
+   799→  isCod          Boolean @default(false)
+   800→
+   801→  subtotal     Decimal @db.Decimal(12, 2)
+   802→  shippingFee  Decimal @default(0) @db.Decimal(12, 2)
+   803→  discount     Decimal @default(0) @db.Decimal(12, 2)
+   804→  tax          Decimal @default(0) @db.Decimal(12, 2)
+   805→  totalAmount  Decimal @db.Decimal(12, 2)
+   806→  currency     String   @default("PKR")
+   807→
+   808→  status    OrderStatus @default(UNCONFIRMED)
+   809→  riskScore Int         @default(0)
+   810→  riskLevel RiskLevel   @default(LOW)
+   811→
+   812→  organization Organization @relation(
+   813→    fields: [organizationId],
+   814→    references: [id],
+   815→    onDelete: Cascade
+   816→  )
+   817→
+   818→  store Store @relation(
+   819→    fields: [storeId],
+   820→    references: [id]
+   821→  )
+   822→
+   823→  customer Customer @relation(
+   824→    fields: [customerId],
+   825→    references: [id]
+   826→  )
+   827→
+   828→  items         OrderItem[]
+   829→  statusHistory OrderStatusHistory[]
+   830→  shipment      Shipment?
+   831→  attentionCases AttentionCase[]
+   832→  returns        Return[]
+   833→  messages      WhatsAppMessage[]
+   834→
+   835→  createdAt DateTime @default(now())
+   836→  updatedAt DateTime @updatedAt
+   837→
+   838→  @@unique([storeId, shopifyOrderId])
+   839→  @@index([organizationId, status])
+   840→  @@index([organizationId, createdAt])
+   841→}
+   842→
+   843→8. Order Items
+   844→model OrderItem {
+   845→  id        String @id @default(cuid())
+   846→  orderId   String
+   847→  productId String?
+   848→
+   849→  quantity  Int
+   850→  unitPrice Decimal @db.Decimal(12, 2)
+   851→  totalPrice Decimal @db.Decimal(12, 2)
+   852→
+   853→  order Order @relation(
+   854→    fields: [orderId],
+   855→    references: [id],
+   856→    onDelete: Cascade
+   857→  )
+   858→
+   859→  product Product? @relation(
+   860→    fields: [productId],
+   861→    references: [id]
+   862→  )
+   863→}
+   864→
+   865→9. Order Timeline
+   866→model OrderStatusHistory {
+   867→  id        String @id @default(cuid())
+   868→  orderId   String
+   869→
+   870→  oldStatus OrderStatus?
+   871→  newStatus OrderStatus
+   872→
+   873→  reason String?
+   874→  source String?
+   875→
+   876→  metadata Json?
+   877→
+   878→  createdAt DateTime @default(now())
+   879→
+   880→  order Order @relation(
+   881→    fields: [orderId],
+   882→    references: [id],
+   883→    onDelete: Cascade
+   884→  )
+   885→
+   886→  @@index([orderId, createdAt])
+   887→}
+   888→
+   889→10. WhatsApp
+   890→model WhatsAppAccount {
+   891→  id                String @id @default(cuid())
+   892→  organizationId    String
+   893→
+   894→  phoneNumber       String?
+   895→  phoneNumberId     String?
+   896→  businessAccountId String?
+   897→
+   898→  accessTokenEncrypted String?
+   899→
+   900→  status String @default("ACTIVE")
+   901→
+   902→  createdAt DateTime @default(now())
+   903→  updatedAt DateTime @updatedAt
+   904→}
+   905→
+   906→model WhatsAppMessage {
+   907→  id             String @id @default(cuid())
+   908→  organizationId String
+   909→
+   910→  customerId String
+   911→  orderId    String?
+   912→
+   913→  direction MessageDirection
+   914→  status    MessageStatus
+   915→
+   916→  messageType String
+   917→  body        String?
+   918→
+   919→  externalMessageId String?
+   920→
+   921→  sentAt      DateTime?
+   922→  deliveredAt DateTime?
+   923→  readAt      DateTime?
+   924→
+   925→  customer Customer @relation(
+   926→    fields: [customerId],
+   927→    references: [id]
+   928→  )
+   929→
+   930→  order Order? @relation(
+   931→    fields: [orderId],
+   932→    references: [id]
+   933→  )
+   934→
+   935→  createdAt DateTime @default(now())
+   936→
+   937→  @@index([organizationId, createdAt])
+   938→  @@index([customerId, createdAt])
+   939→}
+   940→
+   941→11. Courier
+   942→model CourierAccount {
+   943→  id             String @id @default(cuid())
+   944→  organizationId String
+   945→
+   946→  provider     String
+   947→  accountName  String
+   948→
+   949→  apiKeyEncrypted    String?
+   950→  apiSecretEncrypted String?
+   951→  accountNumber      String?
+   952→
+   953→  pickupAddress Json?
+   954→
+   955→  status String @default("ACTIVE")
+   956→
+   957→  organization Organization @relation(
+   958→    fields: [organizationId],
+   959→    references: [id],
+   960→    onDelete: Cascade
+   961→  )
+   962→
+   963→  shipments Shipment[]
+   964→
+   965→  createdAt DateTime @default(now())
+   966→  updatedAt DateTime @updatedAt
+   967→}
+   968→
+   969→model Shipment {
+   970→  id               String @id @default(cuid())
+   971→  organizationId   String
+   972→  orderId          String @unique
+   973→  courierAccountId String
+   974→
+   975→  trackingNumber String?
+   976→  externalId     String?
+   977→
+   978→  status String
+   979→
+   980→  shippingCost Decimal? @db.Decimal(12, 2)
+   981→  codAmount    Decimal? @db.Decimal(12, 2)
+   982→
+   983→  labelUrl String?
+   984→
+   985→  shippedAt   DateTime?
+   986→  deliveredAt DateTime?
+   987→  returnedAt  DateTime?
+   988→
+   989→  order Order @relation(
+   990→    fields: [orderId],
+   991→    references: [id]
+   992→  )
+   993→
+   994→  courierAccount CourierAccount @relation(
+   995→    fields: [courierAccountId],
+   996→    references: [id]
+   997→  )
+   998→
+   999→  trackingEvents TrackingEvent[]
+  1000→
+  1001→  createdAt DateTime @default(now())
+  1002→  updatedAt DateTime @updatedAt
+  1003→}
+  1004→
+  1005→model TrackingEvent {
+  1006→  id         String @id @default(cuid())
+  1007→  shipmentId String
+  1008→
+  1009→  externalEventId String?
+  1010→  status          String
+  1011→  eventCode       String?
+  1012→  description     String?
+  1013→
+  1014→  location String?
+  1015→  eventTime DateTime
+  1016→
+  1017→  rawPayload Json?
+  1018→
+  1019→  shipment Shipment @relation(
+  1020→    fields: [shipmentId],
+  1021→    references: [id],
+  1022→    onDelete: Cascade
+  1023→  )
+  1024→
+  1025→  createdAt DateTime @default(now())
+  1026→
+  1027→  @@index([shipmentId, eventTime])
+  1028→}
+  1029→
+  1030→12. Needs Attention
+  1031→model AttentionCase {
+  1032→  id             String @id @default(cuid())
+  1033→  organizationId String
+  1034→
+  1035→  orderId    String?
+  1036→  customerId String?
+  1037→  shipmentId String?
+  1038→
+  1039→  type     AttentionType
+  1040→  priority String @default("MEDIUM")
+  1041→  status   AttentionStatus @default(OPEN)
+  1042→
+  1043→  title       String
+  1044→  description String?
+  1045→
+  1046→  recommendedAction String?
+  1047→
+  1048→  assignedTo String?
+  1049→
+  1050→  createdAt DateTime @default(now())
+  1051→  resolvedAt DateTime?
+  1052→
+  1053→  organization Organization @relation(
+  1054→    fields: [organizationId],
+  1055→    references: [id],
+  1056→    onDelete: Cascade
+  1057→  )
+  1058→
+  1059→  order Order? @relation(
+  1060→    fields: [orderId],
+  1061→    references: [id]
+  1062→  )
+  1063→
+  1064→  @@index([organizationId, status])
+  1065→}
+  1066→
+  1067→13. Automation
+  1068→model AutomationRule {
+  1069→  id             String @id @default(cuid())
+  1070→  organizationId String
+  1071→
+  1072→  name        String
+  1073→  description String?
+  1074→
+  1075→  trigger String
+  1076→
+  1077→  conditions Json
+  1078→  actions    Json
+  1079→
+  1080→  enabled Boolean @default(true)
+  1081→
+  1082→  organization Organization @relation(
+  1083→    fields: [organizationId],
+  1084→    references: [id],
+  1085→    onDelete: Cascade
+  1086→  )
+  1087→
+  1088→  runs AutomationRun[]
+  1089→
+  1090→  createdAt DateTime @default(now())
+  1091→  updatedAt DateTime @updatedAt
+  1092→}
+  1093→
+  1094→model AutomationRun {
+  1095→  id           String @id @default(cuid())
+  1096→  automationId String
+  1097→
+  1098→  status String
+  1099→
+  1100→  input  Json?
+  1101→  output Json?
+  1102→  error  String?
+  1103→
+  1104→  startedAt DateTime @default(now())
+  1105→  endedAt   DateTime?
+  1106→
+  1107→  automation AutomationRule @relation(
+  1108→    fields: [automationId],
+  1109→    references: [id],
+  1110→    onDelete: Cascade
+  1111→  )
+  1112→}
+  1113→
+  1114→14. Returns
+  1115→model Return {
+  1116→  id         String @id @default(cuid())
+  1117→  orderId    String
+  1118→  customerId String
+  1119→
+  1120→  reasonCode String
+  1121→  reasonText String?
+  1122→
+  1123→  status String
+  1124→
+  1125→  returnShippingCost Decimal? @db.Decimal(12, 2)
+  1126→
+  1127→  initiatedAt DateTime?
+  1128→  receivedAt  DateTime?
+  1129→
+  1130→  order Order @relation(
+  1131→    fields: [orderId],
+  1132→    references: [id]
+  1133→  )
+  1134→
+  1135→  createdAt DateTime @default(now())
+  1136→}
+  1137→
+  1138→15. Audit Logs
+  1139→model AuditLog {
+  1140→  id             String @id @default(cuid())
+  1141→  organizationId String
+  1142→  userId         String?
+  1143→
+  1144→  action     String
+  1145→  entityType String
+  1146→  entityId   String?
+  1147→
+  1148→  oldData Json?
+  1149→  newData Json?
+  1150→
+  1151→  ipAddress String?
+  1152→  userAgent String?
+  1153→
+  1154→  createdAt DateTime @default(now())
+  1155→
+  1156→  organization Organization @relation(
+  1157→    fields: [organizationId],
+  1158→    references: [id],
+  1159→    onDelete: Cascade
+  1160→  )
+  1161→
+  1162→  user User? @relation(
+  1163→    fields: [userId],
+  1164→    references: [id]
+  1165→  )
+  1166→
+  1167→  @@index([organizationId, createdAt])
+  1168→}
+  1169→
+  1170→16. API Contract
+  1171→Base URL:
+  1172→/api/v1
+  1173→Dashboard
+  1174→GET /api/v1/dashboard
+  1175→Response:
+  1176→{
+  1177→  "orders": 1248,
+  1178→  "confirmed": 892,
+  1179→  "inTransit": 423,
+  1180→  "delivered": 731,
+  1181→  "returns": 82,
+  1182→  "attention": 37,
+  1183→  "revenue": 8200000,
+  1184→  "rtoRate": 6.5
+  1185→}
+  1186→
+  1187→17. Orders API
+  1188→GET    /api/v1/orders
+  1189→GET    /api/v1/orders/:id
+  1190→PATCH  /api/v1/orders/:id
+  1191→POST   /api/v1/orders/:id/confirm
+  1192→POST   /api/v1/orders/:id/cancel
+  1193→POST   /api/v1/orders/:id/create-shipment
+  1194→GET    /api/v1/orders/:id/timeline
+  1195→POST   /api/v1/orders/:id/analyze
+  1196→Example:
+  1197→POST /api/v1/orders/ord_123/confirm
+  1198→Response:
+  1199→{
+  1200→  "success": true,
+  1201→  "orderId": "ord_123",
+  1202→  "status": "CONFIRMED"
+  1203→}
+  1204→
+  1205→18. Customers API
+  1206→GET /api/v1/customers
+  1207→GET /api/v1/customers/:id
+  1208→GET /api/v1/customers/:id/orders
+  1209→GET /api/v1/customers/:id/messages
+  1210→GET /api/v1/customers/:id/risk
+  1211→
+  1212→19. WhatsApp API
+  1213→POST /api/v1/whatsapp/connect
+  1214→GET  /api/v1/whatsapp/account
+  1215→GET  /api/v1/whatsapp/conversations
+  1216→GET  /api/v1/whatsapp/conversations/:id
+  1217→POST /api/v1/whatsapp/messages
+  1218→GET  /api/v1/whatsapp/templates
+  1219→Webhook:
+  1220→GET  /api/v1/webhooks/whatsapp
+  1221→POST /api/v1/webhooks/whatsapp
+  1222→
+  1223→20. Courier API
+  1224→GET  /api/v1/couriers
+  1225→POST /api/v1/couriers
+  1226→DELETE /api/v1/couriers/:id
+  1227→
+  1228→POST /api/v1/shipments
+  1229→GET  /api/v1/shipments
+  1230→GET  /api/v1/shipments/:id
+  1231→GET  /api/v1/shipments/:id/tracking
+  1232→
+  1233→21. Attention API
+  1234→GET   /api/v1/attention
+  1235→GET   /api/v1/attention/:id
+  1236→PATCH /api/v1/attention/:id
+  1237→POST  /api/v1/attention/:id/resolve
+  1238→POST  /api/v1/attention/:id/contact
+  1239→
+  1240→22. Automation API
+  1241→GET    /api/v1/automations
+  1242→POST   /api/v1/automations
+  1243→GET    /api/v1/automations/:id
+  1244→PATCH  /api/v1/automations/:id
+  1245→DELETE /api/v1/automations/:id
+  1246→
+  1247→POST /api/v1/automations/:id/test
+  1248→GET  /api/v1/automations/:id/runs
+  1249→
+  1250→23. AI API
+  1251→GET  /api/v1/ai/insights
+  1252→POST /api/v1/ai/orders/:id/analyze
+  1253→POST /api/v1/ai/orders/:id/risk
+  1254→POST /api/v1/ai/customers/:id/analyze
+  1255→POST /api/v1/ai/daily-summary
+  1256→POST /api/v1/ai/actions/:id/approve
+  1257→
+  1258→24. Shopify Webhook Architecture
+  1259→This is the first major integration to build.
+  1260→Shopify
+  1261→   │
+  1262→   │ orders/create
+  1263→   ▼
+  1264→POST /api/webhooks/shopify
+  1265→   │
+  1266→   ▼
+  1267→Verify webhook
+  1268→   │
+  1269→   ▼
+  1270→Parse payload
+  1271→   │
+  1272→   ▼
+  1273→Queue job
+  1274→   │
+  1275→   ▼
+  1276→Order Worker
+  1277→   │
+  1278→   ├── Find/Create Customer
+  1279→   ├── Find/Create Products
+  1280→   ├── Create Order
+  1281→   ├── Create Order Items
+  1282→   └── Start Automation
+  1283→Critical rule
+  1284→Webhook handler ko directly heavy processing nahi karni.
+  1285→Wrong:
+  1286→Webhook
+  1287→ ↓
+  1288→Process 1000 records
+  1289→ ↓
+  1290→Return response
+  1291→Correct:
+  1292→Webhook
+  1293→ ↓
+  1294→Verify
+  1295→ ↓
+  1296→Queue
+  1297→ ↓
+  1298→Return quickly
+  1299→ ↓
+  1300→Worker processes data
+  1301→
+  1302→25. Order Creation Worker
+  1303→async function processShopifyOrder(payload) {
+  1304→
+  1305→  const store = await getStoreFromWebhook(payload);
+  1306→
+  1307→  const customer = await upsertCustomer({
+  1308→    organizationId: store.organizationId,
+  1309→    shopifyCustomerId: payload.customer?.id,
+  1310→    firstName: payload.customer?.first_name,
+  1311→    lastName: payload.customer?.last_name,
+  1312→    phone: payload.customer?.phone,
+  1313→    email: payload.customer?.email
+  1314→  });
+  1315→
+  1316→  const order = await createOrUpdateOrder({
+  1317→    organizationId: store.organizationId,
+  1318→    storeId: store.id,
+  1319→    customerId: customer.id,
+  1320→    shopifyOrderId: String(payload.id),
+  1321→    orderNumber: payload.order_number,
+  1322→    totalAmount: payload.total_price,
+  1323→    isCod: detectCOD(payload)
+  1324→  });
+  1325→
+  1326→  await createOrderItems(order, payload);
+  1327→
+  1328→  await runAutomations({
+  1329→    event: "ORDER_CREATED",
+  1330→    orderId: order.id
+  1331→  });
+  1332→
+  1333→  return order;
+  1334→}
+  1335→
+  1336→26. First Automation
+  1337→The first automation should be extremely simple.
+  1338→EVENT
+  1339→Order Created
+  1340→
+  1341→       ↓
+  1342→
+  1343→CHECK
+  1344→Is COD?
+  1345→
+  1346→       ↓ YES
+  1347→
+  1348→SEND
+  1349→WhatsApp Confirmation
+  1350→
+  1351→       ↓
+  1352→
+  1353→WAIT
+  1354→30 Minutes
+  1355→
+  1356→       ↓
+  1357→
+  1358→CHECK
+  1359→Customer responded?
+  1360→
+  1361→       ├── YES → Confirm Order
+  1362→       │
+  1363→       └── NO
+  1364→              ↓
+  1365→         Send Reminder
+  1366→              ↓
+  1367→         Create Attention
+  1368→
+  1369→27. Event System
+  1370→Create standard internal events:
+  1371→ORDER_CREATED
+  1372→ORDER_UPDATED
+  1373→ORDER_CONFIRMED
+  1374→ORDER_CANCELLED
+  1375→
+  1376→SHIPMENT_CREATED
+  1377→SHIPMENT_IN_TRANSIT
+  1378→SHIPMENT_OUT_FOR_DELIVERY
+  1379→
+  1380→DELIVERY_FAILED
+  1381→ORDER_DELIVERED
+  1382→
+  1383→CUSTOMER_MESSAGE_RECEIVED
+  1384→CUSTOMER_MESSAGE_SENT
+  1385→
+  1386→RETURN_CREATED
+  1387→RETURN_RECEIVED
+  1388→Automation engine sirf in events ko listen karega.
+  1389→
+  1390→28. AI Tool Architecture
+  1391→AI ko direct SQL access mat dena.
+  1392→Instead:
+  1393→AI
+  1394→ │
+  1395→ ├── getOrder()
+  1396→ ├── getCustomer()
+  1397→ ├── getCustomerHistory()
+  1398→ ├── getTracking()
+  1399→ ├── getConversation()
+  1400→ ├── calculateRisk()
+  1401→ ├── createAttentionCase()
+  1402→ └── prepareMessage()
+  1403→Example:
+  1404→const tools = {
+  1405→  getOrder,
+  1406→  getCustomer,
+  1407→  getCustomerHistory,
+  1408→  getTracking,
+  1409→  getConversation,
+  1410→  calculateRisk,
+  1411→  createAttentionCase,
+  1412→  prepareMessage
+  1413→};
+  1414→
+  1415→29. AI Order Analysis
+  1416→AI ko yeh context mile:
+  1417→{
+  1418→  "order": {},
+  1419→  "customer": {
+  1420→    "previousOrders": 12,
+  1421→    "delivered": 9,
+  1422→    "returned": 3
+  1423→  },
+  1424→  "shipment": {},
+  1425→  "conversation": [],
+  1426→  "address": {}
+  1427→}
+  1428→AI output:
+  1429→{
+  1430→  "riskLevel": "HIGH",
+  1431→  "riskScore": 78,
+  1432→  "reasons": [
+  1433→    "Previous RTO history",
+  1434→    "Customer has not responded",
+  1435→    "Incomplete address"
+  1436→  ],
+  1437→  "recommendedAction": "VERIFY_CUSTOMER"
+  1438→}
+  1439→AI ka output directly database action nahi karega.
+  1440→
+  1441→30. Security Layer
+  1442→Request:
+  1443→Browser
+  1444→   ↓
+  1445→Authentication
+  1446→   ↓
+  1447→Organization Check
+  1448→   ↓
+  1449→RBAC
+  1450→   ↓
+  1451→Validation
+  1452→   ↓
+  1453→Business Logic
+  1454→   ↓
+  1455→Database
+  1456→For example:
+  1457→if (!user) {
+  1458→  throw new UnauthorizedError();
+  1459→}
+  1460→
+  1461→if (!membership) {
+  1462→  throw new ForbiddenError();
+  1463→}
+  1464→
+  1465→if (membership.role === "VIEWER") {
+  1466→  // prevent write operation
+  1467→}
+  1468→
+  1469→31. API Validation
+  1470→Use:
+  1471→Zod
+  1472→Example:
+  1473→const CreateShipmentSchema = z.object({
+  1474→  orderId: z.string(),
+  1475→  courierAccountId: z.string(),
+  1476→  pickupAddress: z.object({
+  1477→    address: z.string(),
+  1478→    city: z.string()
+  1479→  })
+  1480→});
+  1481→Never trust browser input.
+  1482→
+  1483→32. Queue Architecture
+  1484→               Redis
+  1485→                  │
+  1486→       ┌──────────┼──────────┐
+  1487→       ▼          ▼          ▼
+  1488→ order-sync   whatsapp    tracking
+  1489→   queue        queue       queue
+  1490→       │          │          │
+  1491→       ▼          ▼          ▼
+  1492→   Worker 1    Worker 2    Worker 3
+  1493→Queues:
+  1494→order-sync
+  1495→whatsapp-send
+  1496→whatsapp-webhook
+  1497→courier-sync
+  1498→tracking-events
+  1499→automation
+  1500→ai-analysis
+  1501→analytics
+  1502→
+  1503→33. MVP Development Milestone
+  1504→Ab actual coding is sequence mein honi chahiye:
+  1505→PHASE 1
+  1506→Project + Database
+  1507→        ↓
+  1508→PHASE 2
+  1509→Authentication + Organization
+  1510→        ↓
+  1511→PHASE 3
+  1512→Shopify OAuth
+  1513→        ↓
+  1514→PHASE 4
+  1515→Order Sync
+  1516→        ↓
+  1517→PHASE 5
+  1518→Dashboard + Orders
+  1519→        ↓
+  1520→PHASE 6
+  1521→WhatsApp
+  1522→        ↓
+  1523→PHASE 7
+  1524→Courier
+  1525→        ↓
+  1526→PHASE 8
+  1527→Attention + RTO
+  1528→        ↓
+  1529→PHASE 9
+  1530→Automation
+  1531→        ↓
+  1532→PHASE 10
+  1533→AI
+  1534→        ↓
+  1535→PHASE 11
+  1536→Billing
+  1537→        ↓
+  1538→PHASE 12
+  1539→Production
+  1540→
+  1541→34. First Coding Milestone
+  1542→Abhi AI coding tool ko sirf Phase 1–2 ka kaam dena chahiye.
+  1543→Prompt 1 — Project Foundation
+  1544→Build a production-ready SaaS foundation called ShipOps.
+  1545→
+  1546→Tech stack:
+  1547→- Next.js
+  1548→- TypeScript
+  1549→- Tailwind CSS
+  1550→- shadcn/ui
+  1551→- PostgreSQL
+  1552→- Prisma
+  1553→- Redis
+  1554→- BullMQ
+  1555→- Zod
+  1556→
+  1557→Requirements:
+  1558→
+  1559→1. Create a clean Next.js application.
+  1560→2. Configure TypeScript.
+  1561→3. Configure Tailwind.
+  1562→4. Configure shadcn/ui.
+  1563→5. Configure Prisma.
+  1564→6. Configure PostgreSQL.
+  1565→7. Create the initial Prisma schema.
+  1566→8. Implement User.
+  1567→9. Implement Organization.
+  1568→10. Implement OrganizationMember.
+  1569→11. Implement role-based access control.
+  1570→12. Implement authentication.
+  1571→13. Create protected dashboard routes.
+  1572→14. Create API error handling.
+  1573→15. Create request validation using Zod.
+  1574→16. Create environment variable validation.
+  1575→17. Create structured logging.
+  1576→18. Create basic audit-log infrastructure.
+  1577→19. Create database seed script.
+  1578→20. Create unit-test setup.
+  1579→
+  1580→Do NOT implement Shopify, WhatsApp, courier or AI yet.
+  1581→
+  1582→The codebase must be modular and production-oriented.
+  1583→
+  1584→Do not use mock data in production code.
+  1585→
+  1586→Create:
+  1587→- README.md
+  1588→- .env.example
+  1589→- Prisma migrations
+  1590→- seed.ts
+  1591→- API structure
+  1592→- authentication middleware
+  1593→- RBAC middleware
+  1594→- error handling
+  1595→- basic tests
+  1596→
+  1597→After implementation, run type checking, linting and tests and fix all errors.
+  1598→
+  1599→35. Then Prompt 2 — Shopify
+  1600→Foundation stable hone ke baad:
+  1601→Implement Shopify integration for ShipOps.
+  1602→
+  1603→Requirements:
+  1604→
+  1605→1. Shopify OAuth/app installation flow.
+  1606→2. Securely store Shopify credentials encrypted.
+  1607→3. Store Shopify shop domain.
+  1608→4. Register required webhooks.
+  1609→5. Implement webhook signature verification.
+  1610→6. Implement orders/create webhook.
+  1611→7. Implement orders/updated webhook.
+  1612→8. Implement orders/fulfilled webhook.
+  1613→9. Implement app/uninstalled webhook.
+  1614→10. Create background jobs using BullMQ.
+  1615→11. Never perform heavy processing inside webhook request handlers.
+  1616→12. Implement idempotent order processing.
+  1617→13. Sync customers.
+  1618→14. Sync products.
+  1619→15. Sync orders.
+  1620→16. Sync order items.
+  1621→17. Create order status history.
+  1622→18. Add retry handling.
+  1623→19. Add failed-job handling.
+  1624→20. Add automated tests.
+  1625→
+  1626→Use Shopify's current GraphQL Admin API where applicable.
+  1627→Do not use deprecated REST Admin API patterns for new functionality.
+  1628→
+  1629→36. Then Prompt 3 — WhatsApp
+  1630→Implement the WhatsApp Business integration.
+  1631→
+  1632→Requirements:
+  1633→
+  1634→1. WhatsApp account connection.
+  1635→2. Secure credential storage.
+  1636→3. Webhook verification.
+  1637→4. Incoming message webhook.
+  1638→5. Outgoing message service.
+  1639→6. Message persistence.
+  1640→7. Delivery/read status tracking.
+  1641→8. Conversation UI.
+  1642→9. Template management.
+  1643→10. COD confirmation workflow.
+  1644→11. Reminder workflow.
+  1645→12. Retry handling.
+  1646→13. Rate-limit handling.
+  1647→14. Background message queue.
+  1648→15. Audit logging.
+  1649→16. Tests.
+  1650→
+  1651→Implement WhatsApp through a provider abstraction so the messaging provider can be changed later.
+  1652→
+  1653→Do not hard-code WhatsApp logic into the Order module.
+  1654→
+  1655→37. Then Prompt 4 — Courier
+  1656→Implement the courier integration architecture.
+  1657→
+  1658→Requirements:
+  1659→
+  1660→1. CourierProvider interface.
+  1661→2. Courier account management.
+  1662→3. Encrypted credentials.
+  1663→4. Shipment creation.
+  1664→5. Shipment cancellation.
+  1665→6. Tracking.
+  1666→7. Tracking webhook.
+  1667→8. Tracking event persistence.
+  1668→9. Shipment timeline.
+  1669→10. Retry handling.
+  1670→11. Failed-job queue.
+  1671→12. First courier adapter.
+  1672→13. Unit tests.
+  1673→
+  1674→The architecture must allow additional courier providers to be added without modifying the Order module.
+  1675→
+  1676→38. Then Prompt 5 — AI
+  1677→Implement the ShipOps AI Operations layer.
+  1678→
+  1679→Requirements:
+  1680→
+  1681→1. AI provider abstraction.
+  1682→2. Tool-based architecture.
+  1683→3. Order analysis tool.
+  1684→4. Customer history tool.
+  1685→5. Tracking analysis tool.
+  1686→6. WhatsApp conversation analysis.
+  1687→7. RTO risk analysis.
+  1688→8. Attention-case recommendation.
+  1689→9. Daily operations summary.
+  1690→10. Human approval before customer-facing actions.
+  1691→11. AI request logging.
+  1692→12. AI response logging.
+  1693→13. Token/usage tracking.
+  1694→14. Error handling.
+  1695→15. Tests.
+  1696→
+  1697→The AI must never directly execute arbitrary SQL.
+  1698→The AI must only access explicitly registered application tools.
+  1699→
+  1700→39. What We Have Now
+  1701→Aapke paas ab:
+  1702→✓ Product concept
+  1703→✓ Product workflow
+  1704→✓ UI/UX architecture
+  1705→✓ Database architecture
+  1706→✓ Prisma schema
+  1707→✓ API architecture
+  1708→✓ Shopify architecture
+  1709→✓ WhatsApp architecture
+  1710→✓ Courier architecture
+  1711→✓ Automation architecture
+  1712→✓ AI architecture
+  1713→✓ Security architecture
+  1714→✓ Queue architecture
+  1715→✓ Deployment architecture
+  1716→✓ Development phases
+  1717→✓ AI coding prompts
+  1718→Ab sabse practical next stage:
+  1719→STEP 5 = actual MVP codebase generation.
+  1720→Ismein hum pehle Next.js + Prisma + PostgreSQL + Auth + Dashboard shell banayenge, phir usi codebase mein Shopify integration add karenge. Yeh approach aapko ek giant AI-generated project ke bajaye testable, scalable SaaS dega.
+  1721→Go next
+  1722→Step 5 — ShipOps MVP Foundation
+  1723→Maine ab actual starter codebase prepare kar diya hai. Ismein:
+  1724→Next.js + TypeScript foundation
+  1725→PostgreSQL + Prisma schema
+  1726→Multi-tenant Organization structure
+  1727→User roles / RBAC foundation
+  1728→Orders
+  1729→Customers
+  1730→Shipments / Couriers
+  1731→WhatsApp message model
+  1732→Attention / RTO models
+  1733→Automation models
+  1734→Audit logs
+  1735→Dashboard UI
+  1736→Orders UI
+  1737→Customers UI
+  1738→Login screen
+  1739→API health endpoint
+  1740→Prisma seed
+  1741→.env.example
+  1742→README with setup instructions
+  1743→Download: ShipOps MVP Starter ZIP
+  1744→Local setup
+  1745→unzip shipops-mvp-starter.zip
+  1746→cd shipops-mvp
+  1747→
+  1748→npm install
+  1749→
+  1750→cp .env.example .env
+  1751→.env mein PostgreSQL connection add karo:
+  1752→DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/shipops"
+  1753→NEXT_PUBLIC_APP_URL="http://localhost:3000"
+  1754→AUTH_SECRET="your-long-random-secret"
+  1755→Then:
+  1756→npx prisma generate
+  1757→npx prisma migrate dev --name init
+  1758→npm run db:seed
+  1759→npm run dev
+  1760→Open:
+  1761→http://localhost:3000/dashboard
+  1762→Ab next development order
+  1763→Step 6 → Real Authentication + Organization System
+  1764→Is stage mein hum demo login ko replace karenge with:
+  1765→Signup
+  1766→   ↓
+  1767→Create Organization
+  1768→   ↓
+  1769→Owner Account
+  1770→   ↓
+  1771→Login
+  1772→   ↓
+  1773→Session
+  1774→   ↓
+  1775→Organization Selection
+  1776→   ↓
+  1777→RBAC
+  1778→   ↓
+  1779→Protected Dashboard
+  1780→Uske baad Step 7 = Shopify OAuth + real Shopify order synchronization hoga. یہی point hai jahan SaaS actual Shopify stores se orders receive karna start karega.
+  1781→Go next
+  1782→Step 6 — Real Authentication + Multi-Tenant Organization
+  1783→Ab hum demo dashboard ko real SaaS authentication system mein convert karenge.
+  1784→Final authentication flow
+  1785→                   ┌─────────────────┐
+  1786→                    │     Sign Up     │
+  1787→                    └────────┬────────┘
+  1788→                             ↓
+  1789→                    Create User Account
+  1790→                             ↓
+  1791→                    Create Organization
+  1792→                             ↓
+  1793→                     Assign OWNER role
+  1794→                             ↓
+  1795→                    ┌─────────────────┐
+  1796→                    │     Dashboard   │
+  1797→                    └────────┬────────┘
+  1798→                             ↓
+  1799→             ┌───────────────┼───────────────┐
+  1800→             ↓               ↓               ↓
+  1801→          Orders         Customers        Settings
+  1802→Roles
+  1803→Role
+  1804→Access
+  1805→OWNER
+  1806→Everything + billing + team
+  1807→ADMIN
+  1808→Almost everything except ownership
+  1809→MANAGER
+  1810→Operations + analytics
+  1811→OPERATOR
+  1812→Orders, WhatsApp, shipments
+  1813→VIEWER
+  1814→Read-only
+  1815→
+  1816→Important security rule
+  1817→Har request mein organization verify hogi:
+  1818→User
+  1819→ ↓
+  1820→Session
+  1821→ ↓
+  1822→Organization Membership
+  1823→ ↓
+  1824→Role Permission
+  1825→ ↓
+  1826→API
+  1827→ ↓
+  1828→Database
+  1829→Iska matlab ek company ka user doosri company ke orders access nahi kar sakta.
+  1830→
+  1831→Cursor / Claude Code ke liye exact prompt
+  1832→Apne project folder mein Cursor/Claude Code open karo aur ye prompt paste karo:
+  1833→You are working on the ShipOps SaaS MVP.
+  1834→
+  1835→Implement Phase 2: Production-ready authentication and multi-tenant organization system.
+  1836→
+  1837→Current stack:
+  1838→- Next.js App Router
+  1839→- TypeScript
+  1840→- Tailwind CSS
+  1841→- Prisma
+  1842→- PostgreSQL
+  1843→- Zod
+  1844→
+  1845→Requirements:
+  1846→
+  1847→1. Authentication
+  1848→- Implement secure email/password signup and login.
+  1849→- Hash passwords using Argon2 or bcrypt.
+  1850→- Implement secure sessions using HTTP-only cookies.
+  1851→- Never expose passwords or session secrets to the client.
+  1852→- Implement logout.
+  1853→- Implement GET /api/v1/auth/me.
+  1854→- Implement protected route middleware.
+  1855→
+  1856→2. Signup flow
+  1857→
+  1858→Create:
+  1859→
+  1860→/signup
+  1861→
+  1862→Fields:
+  1863→- name
+  1864→- email
+  1865→- password
+  1866→- organizationName
+  1867→
+  1868→When signup succeeds:
+  1869→- Create User
+  1870→- Create Organization
+  1871→- Create OrganizationMember
+  1872→- Assign OWNER role
+  1873→- Create session
+  1874→- Redirect to /dashboard
+  1875→
+  1876→3. Login flow
+  1877→
+  1878→Create:
+  1879→
+  1880→/login
+  1881→
+  1882→Fields:
+  1883→- email
+  1884→- password
+  1885→
+  1886→After successful login:
+  1887→- Create secure session
+  1888→- Redirect to /dashboard
+  1889→
+  1890→Invalid credentials must return a generic error.
+  1891→
+  1892→4. Multi-tenancy
+  1893→
+  1894→Every organization-owned database query MUST be scoped by organizationId.
+  1895→
+  1896→Create a reusable server-side helper:
+  1897→
+  1898→getCurrentUser()
+  1899→getCurrentOrganization()
+  1900→requireAuth()
+  1901→requireRole()
+  1902→
+  1903→Never trust organizationId supplied directly by the browser.
+  1904→
+  1905→Derive organizationId from the authenticated user's membership/session.
+  1906→
+  1907→5. RBAC
+  1908→
+  1909→Implement:
+  1910→
+  1911→OWNER
+  1912→ADMIN
+  1913→MANAGER
+  1914→OPERATOR
+  1915→VIEWER
+  1916→
+  1917→Create a central permission system.
+  1918→
+  1919→Example permissions:
+  1920→
+  1921→OWNER:
+  1922→- everything
+  1923→
+  1924→ADMIN:
+  1925→- dashboard
+  1926→- orders
+  1927→- customers
+  1928→- shipments
+  1929→- whatsapp
+  1930→- automation
+  1931→- analytics
+  1932→- settings
+  1933→- team
+  1934→
+  1935→MANAGER:
+  1936→- dashboard
+  1937→- orders
+  1938→- customers
+  1939→- shipments
+  1940→- whatsapp
+  1941→- analytics
+  1942→
+  1943→OPERATOR:
+  1944→- dashboard
+  1945→- orders
+  1946→- customers
+  1947→- shipments
+  1948→- whatsapp
+  1949→
+  1950→VIEWER:
+  1951→- dashboard
+  1952→- orders
+  1953→- customers
+  1954→- analytics read-only
+  1955→
+  1956→Do not implement permissions separately inside every route.
+  1957→Use centralized permission helpers.
+  1958→
+  1959→6. Organization API
+  1960→
+  1961→Implement:
+  1962→
+  1963→GET /api/v1/organizations/current
+  1964→
+  1965→PATCH /api/v1/organizations/current
+  1966→
+  1967→GET /api/v1/organizations/current/members
+  1968→
+  1969→POST /api/v1/organizations/current/members
+  1970→
+  1971→PATCH /api/v1/organizations/current/members/:id
+  1972→
+  1973→DELETE /api/v1/organizations/current/members/:id
+  1974→
+  1975→Only OWNER and ADMIN can manage members.
+  1976→
+  1977→Only OWNER can transfer ownership.
+  1978→
+  1979→7. Team invitation
+  1980→
+  1981→Implement basic invitation architecture.
+  1982→
+  1983→Create an OrganizationInvitation model:
+  1984→
+  1985→id
+  1986→organizationId
+  1987→email
+  1988→role
+  1989→tokenHash
+  1990→expiresAt
+  1991→acceptedAt
+  1992→createdAt
+  1993→
+  1994→Create:
+  1995→
+  1996→POST /api/v1/organizations/current/invitations
+  1997→
+  1998→GET /api/v1/invitations/:token
+  1999→
+  2000→POST /api/v1/invitations/:token/accept
+
+[showing lines 1-2000 of 2213; use offset=2001 with limit to continue reading]
