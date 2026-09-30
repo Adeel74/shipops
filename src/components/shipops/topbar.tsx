@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu, Search, Bell, ChevronDown, Store } from "lucide-react";
+import { Menu, Search, Bell, ChevronDown, Store, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import type { UserRole, ViewKey } from "@/lib/types";
 import { userRoleConfig, formatTimeAgo } from "@/lib/format";
@@ -184,6 +184,10 @@ export function Topbar({ userRole, currentView, onMenuClick, onRoleChange, onNav
                       ))}
                     </div>
                   </div>
+                  <a href="/admin" className="flex w-full items-center gap-2 border-b border-border px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50">
+                    <ShieldCheck className="h-4 w-4" />
+                    Super Admin Panel
+                  </a>
                   <button onClick={async () => { await fetch('/api/v1/auth/logout', { method: 'POST' }); onLogout?.(); }} className="w-full py-2 text-center text-xs font-medium text-red-600 hover:bg-red-50">
                     Sign out
                   </button>

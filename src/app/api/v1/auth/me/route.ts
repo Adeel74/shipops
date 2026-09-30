@@ -13,6 +13,7 @@ export async function GET() {
         id: ctx.user.id,
         name: ctx.user.name,
         email: ctx.user.email,
+        isSuperAdmin: ctx.user.isSuperAdmin,
       },
       organization: {
         id: ctx.organization.id,
