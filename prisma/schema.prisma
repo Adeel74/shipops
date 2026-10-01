@@ -567,3 +567,23 @@ model AuditLog {
 
   @@index([organizationId, createdAt])
 }
+
+// ============================================================
+// WEBHOOK DELIVERY LOG
+// ============================================================
+
+model WebhookDelivery {
+  id             String   @id @default(cuid())
+  source         String   // SHOPIFY | WHATSAPP | COURIER
+  eventType      String   // orders/create, messages, tracking_event
+  payload        String   // JSON string of the raw payload
+  processed      Boolean  @default(false)
+  error          String?
+  processingTime Int?     // milliseconds
+
+  receivedAt DateTime @default(now())
+  processedAt DateTime?
+
+  @@index([source, receivedAt])
+  @@index([processed])
+}

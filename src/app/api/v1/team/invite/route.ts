@@ -63,6 +63,16 @@ export async function POST(req: NextRequest) {
     // In production, send email here. For dev, return the invite URL.
     const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/accept?token=${token}`
 
+    // Send invitation email
+    const { sendInvitationEmail } = await import('@/lib/email')
+    await sendInvitationEmail({
+      to: email.toLowerCase(),
+      orgName: ctx.organization.name,
+      inviterName: ctx.user.name,
+      role,
+      inviteUrl,
+    })
+
     return ok({
       invitation: {
         id: invitation.id,

@@ -8,6 +8,7 @@ import { AdminUsers } from "@/components/admin/admin-users";
 import { AdminOrders } from "@/components/admin/admin-orders";
 import { AdminPlans } from "@/components/admin/admin-plans";
 import { AdminActivity } from "@/components/admin/admin-activity";
+import { AdminWebhooks } from "@/components/admin/admin-webhooks";
 import { AdminSystem } from "@/components/admin/admin-system";
 import { ShieldCheck, Lock } from "lucide-react";
 
@@ -71,6 +72,7 @@ export default function AdminPage() {
       {view === 'orders' && <AdminOrders />}
       {view === 'plans' && <AdminPlans />}
       {view === 'activity' && <AdminActivity />}
+      {view === 'webhooks' && <AdminWebhooks />}
       {view === 'system' && <AdminSystem />}
     </AdminShell>
   );

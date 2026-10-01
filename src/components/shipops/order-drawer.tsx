@@ -460,6 +460,17 @@ export function OrderDrawer({ order, orderId, onClose }: OrderDrawerProps) {
               <CheckCircle2 className="h-4 w-4" />
               <span className="text-[11px] font-semibold">Confirm</span>
             </button>
+            {currentOrder.trackingNumber && (
+              <a
+                href={`/track/${currentOrder.trackingNumber}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 p-2.5 hover:bg-indigo-100"
+              >
+                <Truck className="h-4 w-4 text-indigo-600" />
+                <span className="text-[11px] font-semibold text-indigo-700">Track</span>
+              </a>
+            )}
             <button
               onClick={() => handleAction("View in Shopify")}
               className="flex flex-col items-center gap-1 rounded-lg border border-border bg-background p-2.5 hover:bg-muted"
