@@ -17,8 +17,20 @@ export async function GET(req: NextRequest) {
 
 // POST /api/webhooks/whatsapp — incoming messages & status updates
 export async function POST(req: NextRequest) {
+  const startTime = Date.now()
+  let rawBody = ''
   try {
-    const body = await req.json()
+    rawBody = await req.text()
+    const body = JSON.parse(rawBody)
+
+    // Log webhook delivery
+    let deliveryId: string | null = null
+    try {
+      const delivery = await db.webhookDelivery.create({
+        data: { source: 'WHATSAPP', eventType: 'message', payload: rawBody.slice(0, 10000), processed: false },
+      })
+      deliveryId = delivery.id
+    } catch {}
 
     // Meta sends an array of entry objects
     const entries = body?.entry || []
@@ -42,6 +54,14 @@ export async function POST(req: NextRequest) {
           }
         }
       }
+    }
+
+    // Mark delivery as processed
+    if (deliveryId) {
+      await db.webhookDelivery.update({
+        where: { id: deliveryId },
+        data: { processed: true, processedAt: new Date(), processingTime: Date.now() - startTime },
+      }).catch(() => {})
     }
 
     return ok({ received: true })

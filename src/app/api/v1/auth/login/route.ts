@@ -2,12 +2,23 @@ import { db } from '@/lib/db'
 import { ok, err } from '@/lib/api'
 import { setSessionCookie } from '@/lib/auth'
 import { loginSchema, parseBody } from '@/lib/validations'
-import { NextRequest } from 'next/server'
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit'
+import { NextRequest, NextResponse } from 'next/server'
 import { createHash, randomBytes } from 'crypto'
 
 // POST /api/v1/auth/login
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 10 login attempts per minute per IP
+    const ip = getClientIP(req)
+    const rateLimit = checkRateLimit(`login:${ip}`, RATE_LIMITS.AUTH)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: { code: 'RATE_LIMITED', message: 'Too many login attempts. Try again in a minute.' } },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)) } }
+      )
+    }
+
     const body = await req.json().catch(() => ({}))
     const parsed = parseBody(loginSchema, body)
     if (!parsed.success) return err('VALIDATION_ERROR', parsed.error, 400)

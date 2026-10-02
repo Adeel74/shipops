@@ -1,11 +1,22 @@
 import { db } from '@/lib/db'
 import { ok, err } from '@/lib/api'
-import { NextRequest } from 'next/server'
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit'
+import { NextRequest, NextResponse } from 'next/server'
 
 // GET /api/v1/public/track?tracking=TCS-78451236
 // Public endpoint — no auth required. Customers use this to track orders.
 export async function GET(req: NextRequest) {
   try {
+    // Rate limit: 30 requests per minute per IP
+    const ip = getClientIP(req)
+    const rateLimit = checkRateLimit(`track:${ip}`, RATE_LIMITS.PUBLIC)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again shortly.' } },
+        { status: 429 }
+      )
+    }
+
     const tracking = req.nextUrl.searchParams.get('tracking') || ''
 
     if (!tracking || tracking.length < 3) {

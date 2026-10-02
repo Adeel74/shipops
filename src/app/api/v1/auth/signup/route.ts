@@ -2,13 +2,24 @@ import { db } from '@/lib/db'
 import { ok, err } from '@/lib/api'
 import { setSessionCookie, auditLog } from '@/lib/auth'
 import { signupSchema, parseBody } from '@/lib/validations'
-import { NextRequest } from 'next/server'
+import { checkRateLimit, getClientIP, RATE_LIMITS } from '@/lib/rate-limit'
+import { NextRequest, NextResponse } from 'next/server'
 import { createHash, randomBytes } from 'crypto'
 
 // POST /api/v1/auth/signup
 // Creates: User + Organization + OrganizationMember (OWNER role) + Session
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 5 signup attempts per minute per IP
+    const ip = getClientIP(req)
+    const rateLimit = checkRateLimit(`signup:${ip}`, { max: 5, windowMs: 60 * 1000 })
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: { code: 'RATE_LIMITED', message: 'Too many signup attempts. Try again in a minute.' } },
+        { status: 429 }
+      )
+    }
+
     const body = await req.json().catch(() => ({}))
     const parsed = parseBody(signupSchema, body)
     if (!parsed.success) return err('VALIDATION_ERROR', parsed.error, 400)

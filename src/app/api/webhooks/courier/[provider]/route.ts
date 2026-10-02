@@ -9,11 +9,22 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ provider: string }> }
 ) {
+  const startTime = Date.now()
   try {
     const { provider } = await params
-    const body = await req.json()
+    const rawBody = await req.text()
+    const body = JSON.parse(rawBody)
 
     const { tracking_number, status, event_code, description, location, event_time } = body
+
+    // Log webhook delivery
+    let deliveryId: string | null = null
+    try {
+      const delivery = await db.webhookDelivery.create({
+        data: { source: 'COURIER', eventType: `${provider}:${status || 'unknown'}`, payload: rawBody.slice(0, 10000), processed: false },
+      })
+      deliveryId = delivery.id
+    } catch {}
 
     if (!tracking_number || !status) {
       return err('VALIDATION_ERROR', 'tracking_number and status are required', 400)
@@ -26,6 +37,12 @@ export async function POST(
     })
 
     if (!shipment) {
+      if (deliveryId) {
+        await db.webhookDelivery.update({
+          where: { id: deliveryId },
+          data: { processed: false, error: `Shipment not found: ${tracking_number}`, processedAt: new Date(), processingTime: Date.now() - startTime },
+        }).catch(() => {})
+      }
       return err('NOT_FOUND', `Shipment not found for tracking: ${tracking_number}`, 404)
     }
 
@@ -119,6 +136,14 @@ export async function POST(
           },
         })
       }
+    }
+
+    // Mark delivery as processed
+    if (deliveryId) {
+      await db.webhookDelivery.update({
+        where: { id: deliveryId },
+        data: { processed: true, processedAt: new Date(), processingTime: Date.now() - startTime },
+      }).catch(() => {})
     }
 
     return ok({ received: true, provider, tracking: tracking_number, status })
